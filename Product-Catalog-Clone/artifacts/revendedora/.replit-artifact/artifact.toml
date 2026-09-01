@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Sistema Revendedora de Perfumes"
+description = "Sistema completo para gestão de revendedora de perfumes. Permite cadastrar produtos (importados da Atlântico Stor), gerenciar consultoras de vendas, definir comissões por consultora e emitir pedidos de venda. Inclui dashboard com resumo de vendas, comissões e metas."
+version = "1.0.0"
+id = "artifacts/revendedora"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19614
+
+[services.development]
+run = "pnpm --filter @workspace/revendedora run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/revendedora", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/revendedora/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19614"
+BASE_PATH = "/"

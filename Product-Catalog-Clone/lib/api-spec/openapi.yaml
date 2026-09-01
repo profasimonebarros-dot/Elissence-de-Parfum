@@ -1,0 +1,605 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification for Sistema Revendedora de Perfumes
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: products
+    description: Product management
+  - name: consultants
+    description: Sales consultant management
+  - name: orders
+    description: Order management
+  - name: dashboard
+    description: Dashboard and statistics
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # Products
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List all products
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a single product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  # Consultants
+  /consultants:
+    get:
+      operationId: listConsultants
+      tags: [consultants]
+      summary: List all consultants
+      parameters:
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of consultants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Consultant"
+    post:
+      operationId: createConsultant
+      tags: [consultants]
+      summary: Create a new consultant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsultantInput"
+      responses:
+        "201":
+          description: Created consultant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consultant"
+
+  /consultants/{id}:
+    get:
+      operationId: getConsultant
+      tags: [consultants]
+      summary: Get a single consultant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Consultant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consultant"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateConsultant
+      tags: [consultants]
+      summary: Update a consultant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsultantUpdate"
+      responses:
+        "200":
+          description: Updated consultant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consultant"
+    delete:
+      operationId: deleteConsultant
+      tags: [consultants]
+      summary: Delete a consultant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /consultants/{id}/stats:
+    get:
+      operationId: getConsultantStats
+      tags: [consultants]
+      summary: Get sales stats for a consultant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Consultant stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsultantStats"
+
+  # Orders
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List all orders
+      parameters:
+        - name: consultantId
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, confirmed, delivered, cancelled]
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get a single order with items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Order with items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderWithItems"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateOrder
+      tags: [orders]
+      summary: Update an order (status, notes)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdate"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    delete:
+      operationId: deleteOrder
+      tags: [orders]
+      summary: Delete an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  # Dashboard
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/top-consultants:
+    get:
+      operationId: getTopConsultants
+      tags: [dashboard]
+      summary: Get top performing consultants
+      responses:
+        "200":
+          description: Top consultants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopConsultant"
+
+  /dashboard/recent-orders:
+    get:
+      operationId: getRecentOrders
+      tags: [dashboard]
+      summary: Get recent orders
+      responses:
+        "200":
+          description: Recent orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Product:
+      type: object
+      required: [id, name, brand, category, price, imageUrl, active, createdAt, updatedAt]
+      properties:
+        id: { type: number }
+        name: { type: string }
+        brand: { type: string }
+        category: { type: string }
+        description: { type: ["string", "null"] }
+        price: { type: number, description: "Price in cents" }
+        originalPrice: { type: ["number", "null"], description: "Original price in cents before discount" }
+        imageUrl: { type: string }
+        active: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ProductInput:
+      type: object
+      required: [name, brand, category, price, imageUrl]
+      properties:
+        name: { type: string, minLength: 1 }
+        brand: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        description: { type: string }
+        price: { type: number, minimum: 0 }
+        originalPrice: { type: number, minimum: 0 }
+        imageUrl: { type: string }
+        active: { type: boolean, default: true }
+
+    ProductUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        brand: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        description: { type: string }
+        price: { type: number, minimum: 0 }
+        originalPrice: { type: ["number", "null"] }
+        imageUrl: { type: string }
+        active: { type: boolean }
+
+    Consultant:
+      type: object
+      required: [id, name, email, phone, commissionRate, active, createdAt, updatedAt]
+      properties:
+        id: { type: number }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        cpf: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        commissionRate: { type: number, description: "Commission percentage 0-100" }
+        active: { type: boolean }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ConsultantInput:
+      type: object
+      required: [name, email, phone, commissionRate]
+      properties:
+        name: { type: string, minLength: 1 }
+        email: { type: string }
+        phone: { type: string }
+        cpf: { type: string }
+        address: { type: string }
+        commissionRate: { type: number, minimum: 0, maximum: 100 }
+        active: { type: boolean, default: true }
+        notes: { type: string }
+
+    ConsultantUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        email: { type: string }
+        phone: { type: string }
+        cpf: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        commissionRate: { type: number, minimum: 0, maximum: 100 }
+        active: { type: boolean }
+        notes: { type: ["string", "null"] }
+
+    ConsultantStats:
+      type: object
+      required: [consultantId, totalOrders, totalRevenue, totalCommission, pendingOrders]
+      properties:
+        consultantId: { type: number }
+        totalOrders: { type: number }
+        totalRevenue: { type: number, description: "Total revenue in cents" }
+        totalCommission: { type: number, description: "Total commission earned in cents" }
+        pendingOrders: { type: number }
+
+    OrderItem:
+      type: object
+      required: [id, orderId, productId, productName, productBrand, productImageUrl, quantity, unitPrice, subtotal]
+      properties:
+        id: { type: number }
+        orderId: { type: number }
+        productId: { type: number }
+        productName: { type: string }
+        productBrand: { type: string }
+        productImageUrl: { type: string }
+        quantity: { type: number }
+        unitPrice: { type: number, description: "Unit price in cents at time of order" }
+        subtotal: { type: number, description: "Subtotal in cents" }
+
+    OrderItemInput:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: { type: number }
+        quantity: { type: number, minimum: 1 }
+
+    Order:
+      type: object
+      required: [id, consultantId, consultantName, status, totalAmount, commissionAmount, createdAt, updatedAt]
+      properties:
+        id: { type: number }
+        consultantId: { type: number }
+        consultantName: { type: string }
+        status: { type: string, enum: [pending, confirmed, delivered, cancelled] }
+        paymentMethod: { type: ["string", "null"], enum: [pix, dinheiro, cartao_credito, cartao_debito, boleto, transferencia, null] }
+        totalAmount: { type: number, description: "Total in cents" }
+        commissionAmount: { type: number, description: "Commission amount in cents" }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    OrderWithItems:
+      type: object
+      required: [id, consultantId, consultantName, status, totalAmount, commissionAmount, items, createdAt, updatedAt]
+      properties:
+        id: { type: number }
+        consultantId: { type: number }
+        consultantName: { type: string }
+        status: { type: string, enum: [pending, confirmed, delivered, cancelled] }
+        paymentMethod: { type: ["string", "null"], enum: [pix, dinheiro, cartao_credito, cartao_debito, boleto, transferencia, null] }
+        totalAmount: { type: number }
+        commissionAmount: { type: number }
+        notes: { type: ["string", "null"] }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    OrderInput:
+      type: object
+      required: [consultantId, items]
+      properties:
+        consultantId: { type: number }
+        paymentMethod: { type: string, enum: [pix, dinheiro, cartao_credito, cartao_debito, boleto, transferencia] }
+        notes: { type: string }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemInput"
+          minItems: 1
+
+    OrderUpdate:
+      type: object
+      properties:
+        status: { type: string, enum: [pending, confirmed, delivered, cancelled] }
+        paymentMethod: { type: ["string", "null"], enum: [pix, dinheiro, cartao_credito, cartao_debito, boleto, transferencia, null] }
+        notes: { type: ["string", "null"] }
+
+    DashboardSummary:
+      type: object
+      required: [totalProducts, totalConsultants, totalOrders, totalRevenue, totalCommissions, pendingOrders, deliveredOrders]
+      properties:
+        totalProducts: { type: number }
+        totalConsultants: { type: number }
+        totalOrders: { type: number }
+        totalRevenue: { type: number, description: "Total revenue in cents" }
+        totalCommissions: { type: number, description: "Total commissions paid in cents" }
+        pendingOrders: { type: number }
+        deliveredOrders: { type: number }
+
+    TopConsultant:
+      type: object
+      required: [id, name, totalOrders, totalRevenue, commissionRate]
+      properties:
+        id: { type: number }
+        name: { type: string }
+        totalOrders: { type: number }
+        totalRevenue: { type: number }
+        commissionRate: { type: number }

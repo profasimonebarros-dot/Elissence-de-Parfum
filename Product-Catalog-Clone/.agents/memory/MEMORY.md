@@ -1,0 +1,1 @@
+- [Atlântico catalog import](catalog-import.md) — external pages require incremental loading and promo-price-aware validation.
