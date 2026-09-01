@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { db, consultantsTable, ordersTable } from "@workspace/db";
 import { eq, ilike, and, sql, SQL } from "drizzle-orm";
 import {
@@ -155,6 +155,7 @@ function toConsultant(row: typeof consultantsTable.$inferSelect) {
     commissionRate: row.commissionRate,
     active: row.active,
     notes: row.notes ?? null,
+    accessToken: row.accessToken,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

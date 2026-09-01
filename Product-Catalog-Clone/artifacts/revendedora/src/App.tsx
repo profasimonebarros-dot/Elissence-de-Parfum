@@ -13,13 +13,18 @@ const Consultants = lazy(() => import('@/pages/Consultants'));
 const Orders = lazy(() => import('@/pages/Orders'));
 const NewOrder = lazy(() => import('@/pages/NewOrder'));
 const OrderDetails = lazy(() => import('@/pages/OrderDetails'));
+const Portal = lazy(() => import('@/pages/Portal'));
 
 const queryClient = new QueryClient();
 
-function Router() {
+const routerFallback = (
+  <div className="p-8 text-center text-muted-foreground">Carregando...</div>
+);
+
+function AdminApp() {
   return (
     <Shell>
-      <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Carregando...</div>}>
+      <Suspense fallback={routerFallback}>
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/produtos" component={Products} />
@@ -31,6 +36,19 @@ function Router() {
         </Switch>
       </Suspense>
     </Shell>
+  );
+}
+
+function Router() {
+  return (
+    <Suspense fallback={routerFallback}>
+      <Switch>
+        {/* Public consultant order-taking page — no admin sidebar/layout */}
+        <Route path="/portal/:token" component={Portal} />
+        {/* Everything else is the internal admin app */}
+        <Route>{() => <AdminApp />}</Route>
+      </Switch>
+    </Suspense>
   );
 }
 

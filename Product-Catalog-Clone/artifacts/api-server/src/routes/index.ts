@@ -1,9 +1,10 @@
-import { Router, type IRouter } from "express";
+﻿import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import productsRouter from "./products";
 import consultantsRouter from "./consultants";
 import ordersRouter from "./orders";
 import dashboardRouter from "./dashboard";
+import portalRouter from "./portal";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(productsRouter);
 router.use(consultantsRouter);
 router.use(ordersRouter);
 router.use(dashboardRouter);
+router.use(portalRouter);
 
 export default router;
