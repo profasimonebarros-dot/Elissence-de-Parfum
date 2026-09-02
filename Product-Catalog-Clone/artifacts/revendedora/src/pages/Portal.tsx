@@ -73,10 +73,32 @@ function apiBase(): string {
   return (import.meta.env.VITE_API_URL as string | undefined) ?? '';
 }
 
+// Matches Tailwind's `lg` breakpoint. Used so the cart/checkout form (which
+// contains interactive Radix components like Select) is only ever mounted
+// ONCE at a time — either in the desktop sidebar or the mobile bottom sheet,
+// never both simultaneously (having two live instances bound to the same
+// state caused a crash on some mobile browsers).
+function useIsDesktop(): boolean {
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
+  );
+
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => setIsDesktop(mql.matches);
+    onChange();
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  return isDesktop;
+}
+
 export default function Portal() {
   const [, params] = useRoute('/portal/:token');
   const token = params?.token ?? '';
   const { toast } = useToast();
+  const isDesktop = useIsDesktop();
 
   const [summary, setSummary] = useState<PortalSummary | null>(null);
   const [summaryError, setSummaryError] = useState(false);
@@ -346,16 +368,18 @@ export default function Portal() {
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <header className="border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
-          <h1 className="font-serif text-lg font-semibold tracking-wide text-primary">Maison de Parfum</h1>
-          {loadingSummary ? (
-            <div className="h-5 w-40 bg-muted rounded animate-pulse mt-2" />
-          ) : (
-            <p className="text-muted-foreground mt-1">
-              Olá, <span className="font-medium text-foreground">{summary?.name}</span> — comissão de{' '}
-              {summary?.commissionRate}% sobre suas vendas
-            </p>
-          )}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
+          <img src="/logo-horizontal.png" alt="Elisssence Parfum France" className="h-12 w-auto object-contain shrink-0" />
+          <div className="border-l border-border pl-4">
+            {loadingSummary ? (
+              <div className="h-5 w-40 bg-muted rounded animate-pulse" />
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                Olá, <span className="font-medium text-foreground">{summary?.name}</span> — comissão de{' '}
+                {summary?.commissionRate}% sobre suas vendas
+              </p>
+            )}
+          </div>
         </div>
       </header>
 
@@ -435,32 +459,39 @@ export default function Portal() {
                   </div>
                 </div>
 
-                <div className="hidden lg:flex lg:flex-col w-full lg:w-1/3 bg-card rounded-lg border border-border shadow-sm sticky top-4 max-h-[calc(100vh-2rem)]">
-                  {cartPanelBody}
-                </div>
+                {isDesktop && (
+                  <div className="hidden lg:flex lg:flex-col w-full lg:w-1/3 bg-card rounded-lg border border-border shadow-sm sticky top-4 max-h-[calc(100vh-2rem)]">
+                    {cartPanelBody}
+                  </div>
+                )}
               </div>
 
-              {/* Mobile: sticky bottom bar + bottom-sheet checkout */}
-              <div className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-card border-t border-border p-3 flex items-center justify-between gap-3">
-                <div className="text-sm">
-                  <p className="text-muted-foreground text-xs">
-                    {cart.length === 0 ? 'Nenhum item' : `${cart.reduce((n, i) => n + i.quantity, 0)} ite${cart.reduce((n, i) => n + i.quantity, 0) === 1 ? 'm' : 'ns'}`}
-                  </p>
-                  <p className="font-serif font-semibold">{formatCurrency(cartSubtotal)}</p>
-                </div>
-                <Sheet open={cartSheetOpen} onOpenChange={setCartSheetOpen}>
-                  <SheetTrigger asChild>
-                    <Button className="font-medium">
-                      <ShoppingBag className="h-4 w-4 mr-2" /> Ver Pedido
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto p-0 flex flex-col">
-                    {cartPanelBody}
-                  </SheetContent>
-                </Sheet>
-              </div>
-              {/* Spacer so the sticky bar doesn't cover the last products */}
-              <div className="lg:hidden h-20" />
+              {/* Mobile: sticky bottom bar + bottom-sheet checkout (only mounted on mobile, so the
+                  interactive form isn't duplicated alongside the desktop panel above) */}
+              {!isDesktop && (
+                <>
+                  <div className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-card border-t border-border p-3 flex items-center justify-between gap-3">
+                    <div className="text-sm">
+                      <p className="text-muted-foreground text-xs">
+                        {cart.length === 0 ? 'Nenhum item' : `${cart.reduce((n, i) => n + i.quantity, 0)} ite${cart.reduce((n, i) => n + i.quantity, 0) === 1 ? 'm' : 'ns'}`}
+                      </p>
+                      <p className="font-serif font-semibold">{formatCurrency(cartSubtotal)}</p>
+                    </div>
+                    <Sheet open={cartSheetOpen} onOpenChange={setCartSheetOpen}>
+                      <SheetTrigger asChild>
+                        <Button className="font-medium">
+                          <ShoppingBag className="h-4 w-4 mr-2" /> Ver Pedido
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto p-0 flex flex-col">
+                        {cartPanelBody}
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+                  {/* Spacer so the sticky bar doesn't cover the last products */}
+                  <div className="lg:hidden h-20" />
+                </>
+              )}
               </>
             )}
           </TabsContent>

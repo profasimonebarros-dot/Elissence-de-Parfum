@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { LayoutDashboard, Package, Users, ShoppingBag, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,8 +21,8 @@ export function Shell({ children }: ShellProps) {
     <div className="min-h-screen flex bg-background w-full font-sans text-foreground">
       {/* Sidebar */}
       <aside className="w-64 border-r border-border bg-card flex-shrink-0 hidden md:flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-border">
-          <h1 className="font-serif text-xl font-semibold tracking-wide text-primary">Maison de Parfum</h1>
+        <div className="h-20 flex items-center px-5 border-b border-border">
+          <img src="/logo-horizontal.png" alt="Elisssence Parfum France" className="h-12 w-auto object-contain" />
         </div>
         <nav className="flex-1 py-6 px-3 space-y-1">
           {navItems.map((item) => {
@@ -61,7 +61,7 @@ export function Shell({ children }: ShellProps) {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Header */}
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:hidden">
-          <h1 className="font-serif text-lg font-semibold text-primary">Maison de Parfum</h1>
+          <img src="/logo-horizontal.png" alt="Elisssence Parfum France" className="h-10 w-auto object-contain" />
           <Link href="/pedidos/novo" className="text-primary p-2">
             <PlusCircle className="h-5 w-5" />
           </Link>
