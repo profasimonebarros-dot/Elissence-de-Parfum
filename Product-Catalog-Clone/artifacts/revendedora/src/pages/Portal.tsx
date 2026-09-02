@@ -368,13 +368,14 @@ export default function Portal() {
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <header className="border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
-          <img src="/logo-horizontal.png" alt="Elisssence Parfum France" className="h-12 w-auto object-contain shrink-0" />
-          <div className="border-l border-border pl-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
+          <img src="/logo.png" alt="Elisssence Parfum" className="h-14 w-14 rounded-full object-cover shrink-0" />
+          <div>
+            <h1 className="font-serif text-lg font-semibold tracking-wide text-primary leading-tight">Elisssence Parfum</h1>
             {loadingSummary ? (
-              <div className="h-5 w-40 bg-muted rounded animate-pulse" />
+              <div className="h-5 w-40 bg-muted rounded animate-pulse mt-1" />
             ) : (
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm mt-0.5">
                 Olá, <span className="font-medium text-foreground">{summary?.name}</span> — comissão de{' '}
                 {summary?.commissionRate}% sobre suas vendas
               </p>
