@@ -116,6 +116,25 @@ export default function Portal() {
   const [submitting, setSubmitting] = useState(false);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
 
+  const [storeSettings, setStoreSettings] = useState<{
+    pixKey: string | null;
+    pixKeyType: string | null;
+    pixRecipientName: string | null;
+    pixEnabled: boolean;
+    dinheiroEnabled: boolean;
+    cartaoCreditoEnabled: boolean;
+    cartaoDebitoEnabled: boolean;
+    boletoEnabled: boolean;
+    transferenciaEnabled: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch(`${apiBase()}/api/settings`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setStoreSettings(data))
+      .catch(() => {});
+  }, []);
+
   const loadSummary = useCallback(async () => {
     setLoadingSummary(true);
     try {
@@ -243,14 +262,30 @@ export default function Portal() {
               <SelectValue placeholder="Selecione a forma de pagamento..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="pix">PIX</SelectItem>
-              <SelectItem value="dinheiro">Dinheiro</SelectItem>
-              <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-              <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-              <SelectItem value="boleto">Boleto</SelectItem>
-              <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+              {(storeSettings?.pixEnabled ?? true) && <SelectItem value="pix">PIX</SelectItem>}
+              {(storeSettings?.dinheiroEnabled ?? true) && <SelectItem value="dinheiro">Dinheiro</SelectItem>}
+              {(storeSettings?.cartaoCreditoEnabled ?? true) && (
+                <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+              )}
+              {(storeSettings?.cartaoDebitoEnabled ?? true) && (
+                <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+              )}
+              {(storeSettings?.boletoEnabled ?? true) && <SelectItem value="boleto">Boleto</SelectItem>}
+              {(storeSettings?.transferenciaEnabled ?? true) && (
+                <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+              )}
             </SelectContent>
           </Select>
+
+          {paymentMethod === 'pix' && storeSettings?.pixKey && (
+            <div className="bg-primary/5 border border-primary/20 rounded-md p-3 text-sm space-y-0.5">
+              <p className="font-medium text-primary">Chave PIX para pagamento</p>
+              <p className="text-foreground break-all">{storeSettings.pixKey}</p>
+              {storeSettings.pixRecipientName && (
+                <p className="text-xs text-muted-foreground">Recebedor: {storeSettings.pixRecipientName}</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { db, productsTable } from "@workspace/db";
 import { eq, ilike, and, SQL } from "drizzle-orm";
+import { z } from "zod";
 import {
   ListProductsQueryParams,
   CreateProductBody,
@@ -58,6 +59,62 @@ router.post("/products", async (req, res) => {
     return res.status(201).json(toProduct(row));
   } catch (err) {
     req.log.error(err, "createProduct error");
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+const BulkPriceUpdateBody = z.object({
+  updates: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        price: z.number().int().nonnegative(), // cents
+      }),
+    )
+    .min(1),
+});
+
+// POST /api/products/bulk-price-update — match products by exact name (case/accents-insensitive)
+// and update their price. Used by the "atualizar preços via planilha" admin feature.
+router.post("/products/bulk-price-update", async (req, res) => {
+  try {
+    const body = BulkPriceUpdateBody.safeParse(req.body);
+    if (!body.success) return res.status(400).json({ error: "Dados inválidos" });
+
+    const normalize = (s: string) =>
+      s
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    const allProducts = await db.select({ id: productsTable.id, name: productsTable.name }).from(productsTable);
+    const byName = new Map<string, number[]>();
+    for (const p of allProducts) {
+      const key = normalize(p.name);
+      const list = byName.get(key) ?? [];
+      list.push(p.id);
+      byName.set(key, list);
+    }
+
+    let updated = 0;
+    const notFound: string[] = [];
+
+    for (const item of body.data.updates) {
+      const ids = byName.get(normalize(item.name));
+      if (!ids || ids.length === 0) {
+        notFound.push(item.name);
+        continue;
+      }
+      for (const id of ids) {
+        await db.update(productsTable).set({ price: item.price }).where(eq(productsTable.id, id));
+        updated++;
+      }
+    }
+
+    return res.json({ updated, notFound });
+  } catch (err) {
+    req.log.error(err, "bulkPriceUpdate error");
     return res.status(500).json({ error: "Internal server error" });
   }
 });

@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, Package, Users, ShoppingBag, PlusCircle } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingBag, PlusCircle, Settings as SettingsIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ShellProps {
@@ -15,6 +15,7 @@ export function Shell({ children }: ShellProps) {
     { href: '/produtos', label: 'Catálogo', icon: Package },
     { href: '/consultoras', label: 'Consultoras', icon: Users },
     { href: '/pedidos', label: 'Pedidos', icon: ShoppingBag },
+    { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
   ];
 
   return (
