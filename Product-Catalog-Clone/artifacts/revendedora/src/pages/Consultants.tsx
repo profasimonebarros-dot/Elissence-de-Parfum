@@ -47,7 +47,7 @@ export default function Consultants() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="text-3xl font-serif font-medium tracking-tight">Equipe de Consultoras</h1>
-          <p className="text-muted-foreground mt-1">Gerencie suas parceiras de vendas e comissÃµes.</p>
+          <p className="text-muted-foreground mt-1">Gerencie suas parceiras de vendas e comissões.</p>
         </div>
         <Button onClick={() => setIsAddOpen(true)} className="w-full sm:w-auto font-medium" data-testid="btn-add-consultant">
           <Plus className="h-4 w-4 mr-2" />
@@ -76,7 +76,7 @@ export default function Consultants() {
           <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
           <h3 className="text-lg font-medium">Nenhuma consultora encontrada</h3>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-            {searchTerm ? "Tente buscar com outros termos." : "Cadastre sua primeira consultora para comeÃ§ar a registrar vendas."}
+            {searchTerm ? "Tente buscar com outros termos." : "Cadastre sua primeira consultora para começar a registrar vendas."}
           </p>
         </div>
       ) : (
@@ -125,6 +125,7 @@ function ConsultantCard({ consultant, onEdit, onDelete }: { consultant: any, onE
       toast({ title: 'Não foi possível copiar', description: link, variant: 'destructive' });
     }
   };
+
   const [isOpen, setIsOpen] = useState(false);
   const { data: stats } = useGetConsultantStats(consultant.id, {
     query: { enabled: isOpen, queryKey: ['consultantStats', consultant.id] }
@@ -142,7 +143,7 @@ function ConsultantCard({ consultant, onEdit, onDelete }: { consultant: any, onE
               <h3 className="font-serif font-semibold text-lg leading-none">{consultant.name}</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs font-medium bg-secondary/10 text-secondary px-2 py-0.5 rounded">
-                  {consultant.commissionRate}% ComissÃ£o
+                  {consultant.commissionRate}% Comissão
                 </span>
                 {!consultant.active && (
                   <span className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
@@ -197,7 +198,7 @@ function ConsultantCard({ consultant, onEdit, onDelete }: { consultant: any, onE
                   <p className="font-semibold text-primary">{formatCurrency(stats.totalRevenue)}</p>
                 </div>
                 <div className="bg-muted/50 p-3 rounded-md">
-                  <p className="text-muted-foreground text-xs mb-1">ComissÃµes (Total)</p>
+                  <p className="text-muted-foreground text-xs mb-1">Comissões (Total)</p>
                   <p className="font-semibold">{formatCurrency(stats.totalCommission)}</p>
                 </div>
                 <div className="bg-muted/50 p-3 rounded-md">
@@ -224,12 +225,12 @@ function ConsultantCard({ consultant, onEdit, onDelete }: { consultant: any, onE
 }
 
 const consultantSchema = z.object({
-  name: z.string().min(1, "Nome Ã© obrigatÃ³rio"),
-  email: z.string().email("Email invÃ¡lido").or(z.literal("")),
-  phone: z.string().min(8, "Telefone Ã© obrigatÃ³rio"),
+  name: z.string().min(1, "Nome é obrigatório"),
+  email: z.string().email("Email inválido").or(z.literal("")),
+  phone: z.string().min(8, "Telefone é obrigatório"),
   cpf: z.string().optional(),
   address: z.string().optional(),
-  commissionRate: z.coerce.number().min(0, "MÃ­nimo 0").max(100, "MÃ¡ximo 100"),
+  commissionRate: z.coerce.number().min(0, "Mínimo 0").max(100, "Máximo 100"),
   active: z.boolean().default(true),
   notes: z.string().optional()
 });
@@ -367,7 +368,7 @@ function ConsultantDialog({ open, onOpenChange, consultant }: { open: boolean, o
                 name="commissionRate"
                 render={({ field }) => (
                   <FormItem className="col-span-2 sm:col-span-1">
-                    <FormLabel>% de ComissÃ£o</FormLabel>
+                    <FormLabel>% de Comissão</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input type="number" min="0" max="100" {...field} className="pr-8" />
@@ -385,7 +386,7 @@ function ConsultantDialog({ open, onOpenChange, consultant }: { open: boolean, o
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>EndereÃ§o Completo (opcional)</FormLabel>
+                  <FormLabel>Endereço Completo (opcional)</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -399,9 +400,9 @@ function ConsultantDialog({ open, onOpenChange, consultant }: { open: boolean, o
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ObservaÃ§Ãµes (opcional)</FormLabel>
+                  <FormLabel>Observações (opcional)</FormLabel>
                   <FormControl>
-                    <Textarea className="resize-none h-20" placeholder="PreferÃªncias, rota de entrega..." {...field} />
+                    <Textarea className="resize-none h-20" placeholder="Preferências, rota de entrega..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -434,7 +435,7 @@ function ConsultantDialog({ open, onOpenChange, consultant }: { open: boolean, o
                 Cancelar
               </Button>
               <Button type="submit" disabled={createConsultant.isPending || updateConsultant.isPending}>
-                {isEditing ? 'Salvar AlteraÃ§Ãµes' : 'Cadastrar Consultora'}
+                {isEditing ? 'Salvar Alterações' : 'Cadastrar Consultora'}
               </Button>
             </DialogFooter>
           </form>
@@ -459,7 +460,7 @@ function DeleteConsultantDialog({ id, onClose }: { id: number | null, onClose: (
         onClose();
       },
       onError: () => {
-        toast({ title: "Erro ao remover", description: "Ela pode possuir pedidos vinculados. Considere inativÃ¡-la.", variant: "destructive" });
+        toast({ title: "Erro ao remover", description: "Ela pode possuir pedidos vinculados. Considere inativá-la.", variant: "destructive" });
         onClose();
       }
     });
@@ -474,7 +475,7 @@ function DeleteConsultantDialog({ id, onClose }: { id: number | null, onClose: (
             Remover consultora?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Esta aÃ§Ã£o nÃ£o pode ser desfeita. Se ela possuir histÃ³rico de vendas, recomendamos apenas marcar o cadastro como "Inativo" editando o perfil.
+            Esta ação não pode ser desfeita. Se ela possuir histórico de vendas, recomendamos apenas marcar o cadastro como "Inativo" editando o perfil.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

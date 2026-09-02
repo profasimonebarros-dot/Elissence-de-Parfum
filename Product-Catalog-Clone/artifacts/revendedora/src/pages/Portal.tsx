@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 type PortalSummary = {
   id: number;
@@ -91,6 +92,7 @@ export default function Portal() {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState<Array<{ product: (typeof products)[number]; quantity: number }>>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [cartSheetOpen, setCartSheetOpen] = useState(false);
 
   const loadSummary = useCallback(async () => {
     setLoadingSummary(true);
@@ -193,6 +195,7 @@ export default function Portal() {
       setCart([]);
       setNotes('');
       setPaymentMethod('');
+      setCartSheetOpen(false);
       loadSummary();
       loadOrders();
     } catch {
@@ -201,6 +204,128 @@ export default function Portal() {
       setSubmitting(false);
     }
   };
+
+  const cartPanelBody = (
+    <>
+      <div className="p-5 border-b border-border bg-muted/20 space-y-4">
+        <h2 className="font-serif text-lg font-medium">Resumo do Pedido</h2>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground flex items-center gap-1.5">
+            <CreditCard className="w-3.5 h-3.5" /> Forma de Pagamento
+          </label>
+          <Select
+            value={paymentMethod}
+            onValueChange={(value) => setPaymentMethod(value as OrderInputPaymentMethod)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a forma de pagamento..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pix">PIX</SelectItem>
+              <SelectItem value="dinheiro">Dinheiro</SelectItem>
+              <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+              <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+              <SelectItem value="boleto">Boleto</SelectItem>
+              <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-5">
+        {cart.length === 0 ? (
+          <div className="text-center text-muted-foreground py-10 flex flex-col items-center">
+            <ShoppingBag className="h-10 w-10 opacity-20 mb-2" />
+            <p className="text-sm">O pedido está vazio</p>
+            <p className="text-xs mt-1">Adicione perfumes pelo catálogo</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {cart.map((item) => (
+              <div key={item.product.id} className="flex items-start justify-between gap-2 group">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm leading-tight">{item.product.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(item.product.price)} un.
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center border border-border rounded-md">
+                      <button
+                        className="w-7 h-7 flex items-center justify-center hover:bg-muted text-muted-foreground"
+                        onClick={() => updateQuantity(item.product.id, -1)}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                      <button
+                        className="w-7 h-7 flex items-center justify-center hover:bg-muted text-muted-foreground"
+                        onClick={() => updateQuantity(item.product.id, 1)}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <button
+                      className="text-muted-foreground hover:text-destructive p-1 rounded transition-colors"
+                      onClick={() => removeFromCart(item.product.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="font-semibold text-sm">
+                  {formatCurrency(item.product.price * item.quantity)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 space-y-2">
+          <label className="text-sm font-medium">Observações do Pedido</label>
+          <Textarea
+            placeholder="Endereço de entrega, embalagem p/ presente..."
+            className="resize-none h-20 text-sm"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="p-5 border-t border-border bg-muted/10">
+        <div className="space-y-2 text-sm mb-4">
+          <div className="flex justify-between text-muted-foreground">
+            <span>Subtotal</span>
+            <span>{formatCurrency(cartSubtotal)}</span>
+          </div>
+          {summary && (
+            <div className="flex justify-between text-primary font-medium">
+              <span>Sua Comissão Estimada ({summary.commissionRate}%)</span>
+              <span>{formatCurrency(estimatedCommission)}</span>
+            </div>
+          )}
+          <Separator className="my-2" />
+          <div className="flex justify-between font-serif text-xl font-bold">
+            <span>Total</span>
+            <span>{formatCurrency(cartSubtotal)}</span>
+          </div>
+        </div>
+
+        <Button
+          className="w-full h-12 text-base font-medium"
+          disabled={cart.length === 0 || submitting}
+          onClick={handleSubmit}
+        >
+          {submitting ? (
+            'Enviando...'
+          ) : (
+            <>
+              <CheckCircle2 className="mr-2 h-5 w-5" /> Confirmar Pedido
+            </>
+          )}
+        </Button>
+      </div>
+    </>
+  );
 
   if (!token) return null;
 
@@ -262,6 +387,7 @@ export default function Portal() {
             {loadingProducts ? (
               <div className="p-8 text-center animate-pulse text-muted-foreground">Carregando catálogo...</div>
             ) : (
+              <>
               <div className="flex flex-col lg:flex-row gap-8 items-start">
                 <div className="w-full lg:w-2/3 space-y-6">
                   <div className="bg-card p-2 rounded-lg border border-border shadow-sm flex items-center sticky top-0 z-10">
@@ -309,126 +435,33 @@ export default function Portal() {
                   </div>
                 </div>
 
-                <div className="w-full lg:w-1/3 bg-card rounded-lg border border-border shadow-sm sticky top-4 flex flex-col max-h-[calc(100vh-2rem)]">
-                  <div className="p-5 border-b border-border bg-muted/20 space-y-4">
-                    <h2 className="font-serif text-lg font-medium">Resumo do Pedido</h2>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                        <CreditCard className="w-3.5 h-3.5" /> Forma de Pagamento
-                      </label>
-                      <Select
-                        value={paymentMethod}
-                        onValueChange={(value) => setPaymentMethod(value as OrderInputPaymentMethod)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a forma de pagamento..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pix">PIX</SelectItem>
-                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                          <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                          <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                          <SelectItem value="boleto">Boleto</SelectItem>
-                          <SelectItem value="transferencia">Transferência Bancária</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-5">
-                    {cart.length === 0 ? (
-                      <div className="text-center text-muted-foreground py-10 flex flex-col items-center">
-                        <ShoppingBag className="h-10 w-10 opacity-20 mb-2" />
-                        <p className="text-sm">O pedido está vazio</p>
-                        <p className="text-xs mt-1">Adicione perfumes pelo catálogo ao lado</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {cart.map((item) => (
-                          <div key={item.product.id} className="flex items-start justify-between gap-2 group">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm leading-tight">{item.product.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatCurrency(item.product.price)} un.
-                              </p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="flex items-center border border-border rounded-md">
-                                  <button
-                                    className="w-7 h-7 flex items-center justify-center hover:bg-muted text-muted-foreground"
-                                    onClick={() => updateQuantity(item.product.id, -1)}
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </button>
-                                  <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                                  <button
-                                    className="w-7 h-7 flex items-center justify-center hover:bg-muted text-muted-foreground"
-                                    onClick={() => updateQuantity(item.product.id, 1)}
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </button>
-                                </div>
-                                <button
-                                  className="text-muted-foreground hover:text-destructive p-1 rounded transition-colors"
-                                  onClick={() => removeFromCart(item.product.id)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                            <div className="font-semibold text-sm">
-                              {formatCurrency(item.product.price * item.quantity)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="mt-6 space-y-2">
-                      <label className="text-sm font-medium">Observações do Pedido</label>
-                      <Textarea
-                        placeholder="Endereço de entrega, embalagem p/ presente..."
-                        className="resize-none h-20 text-sm"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="p-5 border-t border-border bg-muted/10">
-                    <div className="space-y-2 text-sm mb-4">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Subtotal</span>
-                        <span>{formatCurrency(cartSubtotal)}</span>
-                      </div>
-                      {summary && (
-                        <div className="flex justify-between text-primary font-medium">
-                          <span>Sua Comissão Estimada ({summary.commissionRate}%)</span>
-                          <span>{formatCurrency(estimatedCommission)}</span>
-                        </div>
-                      )}
-                      <Separator className="my-2" />
-                      <div className="flex justify-between font-serif text-xl font-bold">
-                        <span>Total</span>
-                        <span>{formatCurrency(cartSubtotal)}</span>
-                      </div>
-                    </div>
-
-                    <Button
-                      className="w-full h-12 text-base font-medium"
-                      disabled={cart.length === 0 || submitting}
-                      onClick={handleSubmit}
-                    >
-                      {submitting ? (
-                        'Enviando...'
-                      ) : (
-                        <>
-                          <CheckCircle2 className="mr-2 h-5 w-5" /> Confirmar Pedido
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                <div className="hidden lg:flex lg:flex-col w-full lg:w-1/3 bg-card rounded-lg border border-border shadow-sm sticky top-4 max-h-[calc(100vh-2rem)]">
+                  {cartPanelBody}
                 </div>
               </div>
+
+              {/* Mobile: sticky bottom bar + bottom-sheet checkout */}
+              <div className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-card border-t border-border p-3 flex items-center justify-between gap-3">
+                <div className="text-sm">
+                  <p className="text-muted-foreground text-xs">
+                    {cart.length === 0 ? 'Nenhum item' : `${cart.reduce((n, i) => n + i.quantity, 0)} ite${cart.reduce((n, i) => n + i.quantity, 0) === 1 ? 'm' : 'ns'}`}
+                  </p>
+                  <p className="font-serif font-semibold">{formatCurrency(cartSubtotal)}</p>
+                </div>
+                <Sheet open={cartSheetOpen} onOpenChange={setCartSheetOpen}>
+                  <SheetTrigger asChild>
+                    <Button className="font-medium">
+                      <ShoppingBag className="h-4 w-4 mr-2" /> Ver Pedido
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto p-0 flex flex-col">
+                    {cartPanelBody}
+                  </SheetContent>
+                </Sheet>
+              </div>
+              {/* Spacer so the sticky bar doesn't cover the last products */}
+              <div className="lg:hidden h-20" />
+              </>
             )}
           </TabsContent>
 
