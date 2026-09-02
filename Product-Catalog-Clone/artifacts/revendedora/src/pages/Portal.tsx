@@ -369,9 +369,9 @@ export default function Portal() {
     <div className="min-h-screen bg-background font-sans text-foreground">
       <header className="border-b border-border bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
-          <img src="/logo.png" alt="Elisssence Parfum" className="h-14 w-14 rounded-full object-cover shrink-0" />
+          <img src="/logo.png" alt="Elisssence Parfum" className="h-16 w-16 rounded-full object-cover shrink-0 ring-2 ring-primary/40 shadow-sm" />
           <div>
-            <h1 className="font-serif text-lg font-semibold tracking-wide text-primary leading-tight">Elisssence Parfum</h1>
+            <h1 translate="no" className="notranslate font-serif text-lg font-semibold tracking-wide text-primary leading-tight">Elisssence Parfum</h1>
             {loadingSummary ? (
               <div className="h-5 w-40 bg-muted rounded animate-pulse mt-1" />
             ) : (

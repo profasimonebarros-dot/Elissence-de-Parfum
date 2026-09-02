@@ -22,8 +22,8 @@ export function Shell({ children }: ShellProps) {
       {/* Sidebar */}
       <aside className="w-64 border-r border-border bg-card flex-shrink-0 hidden md:flex flex-col">
         <div className="h-20 flex items-center gap-3 px-5 border-b border-border">
-          <img src="/logo.png" alt="Elisssence Parfum" className="h-12 w-12 rounded-full shrink-0 object-cover" />
-          <h1 className="font-serif text-base font-semibold tracking-wide text-primary leading-tight">Elisssence<br />Parfum</h1>
+          <img src="/logo.png" alt="Elisssence Parfum" className="h-14 w-14 rounded-full shrink-0 object-cover ring-2 ring-primary/40 shadow-sm" />
+          <h1 translate="no" className="notranslate font-serif text-base font-semibold tracking-wide text-primary leading-tight">Elisssence<br />Parfum</h1>
         </div>
         <nav className="flex-1 py-6 px-3 space-y-1">
           {navItems.map((item) => {
@@ -63,8 +63,8 @@ export function Shell({ children }: ShellProps) {
         {/* Mobile Header */}
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:hidden">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Elisssence Parfum" className="h-10 w-10 rounded-full object-cover" />
-            <h1 className="font-serif text-base font-semibold text-primary">Elisssence Parfum</h1>
+            <img src="/logo.png" alt="Elisssence Parfum" className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/40 shadow-sm" />
+            <h1 translate="no" className="notranslate font-serif text-base font-semibold text-primary">Elisssence Parfum</h1>
           </div>
           <Link href="/pedidos/novo" className="text-primary p-2">
             <PlusCircle className="h-5 w-5" />
