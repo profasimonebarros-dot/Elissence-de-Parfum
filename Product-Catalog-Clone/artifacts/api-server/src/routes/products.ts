@@ -67,6 +67,7 @@ const BulkPriceUpdateBody = z.object({
   updates: z
     .array(
       z.object({
+        id: z.number().int().positive().optional(),
         name: z.string().min(1),
         price: z.number().int().nonnegative(), // cents
       }),
@@ -74,8 +75,9 @@ const BulkPriceUpdateBody = z.object({
     .min(1),
 });
 
-// POST /api/products/bulk-price-update — match products by exact name (case/accents-insensitive)
-// and update their price. Used by the "atualizar preços via planilha" admin feature.
+// POST /api/products/bulk-price-update — match products by ID (when given) or by
+// exact name (case/accents-insensitive) as a fallback, and update their price.
+// Used by the "atualizar preços via planilha" admin feature.
 router.post("/products/bulk-price-update", async (req, res) => {
   try {
     const body = BulkPriceUpdateBody.safeParse(req.body);
@@ -89,6 +91,7 @@ router.post("/products/bulk-price-update", async (req, res) => {
         .replace(/[\u0300-\u036f]/g, "");
 
     const allProducts = await db.select({ id: productsTable.id, name: productsTable.name }).from(productsTable);
+    const idSet = new Set(allProducts.map((p) => p.id));
     const byName = new Map<string, number[]>();
     for (const p of allProducts) {
       const key = normalize(p.name);
@@ -101,12 +104,18 @@ router.post("/products/bulk-price-update", async (req, res) => {
     const notFound: string[] = [];
 
     for (const item of body.data.updates) {
-      const ids = byName.get(normalize(item.name));
-      if (!ids || ids.length === 0) {
+      let targetIds: number[];
+      if (item.id !== undefined && idSet.has(item.id)) {
+        targetIds = [item.id];
+      } else {
+        targetIds = byName.get(normalize(item.name)) ?? [];
+      }
+
+      if (targetIds.length === 0) {
         notFound.push(item.name);
         continue;
       }
-      for (const id of ids) {
+      for (const id of targetIds) {
         await db.update(productsTable).set({ price: item.price }).where(eq(productsTable.id, id));
         updated++;
       }
