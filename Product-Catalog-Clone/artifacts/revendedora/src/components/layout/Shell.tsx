@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { LayoutDashboard, Package, Users, ShoppingBag, PlusCircle, Settings as SettingsIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -77,6 +77,9 @@ export function Shell({ children }: ShellProps) {
             {children}
           </div>
         </div>
+        <footer className="px-4 md:px-8 py-4 text-center text-xs text-muted-foreground border-t border-border">
+          Imagens meramente ilustrativas. Todos os direitos sobre marcas e imagens pertencem aos seus respectivos fabricantes.
+        </footer>
       </main>
       
       {/* Mobile Nav */}
