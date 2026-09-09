@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { requireAuth, type AuthedRequest } from "../middleware/requireAuth";
 
 const router = Router();
 
@@ -14,6 +15,20 @@ function getJwtSecret(): string {
   const secret = process.env["JWT_SECRET"];
   if (!secret) throw new Error("JWT_SECRET environment variable is required but was not provided.");
   return secret;
+}
+
+function isCookieSecure(): boolean {
+  return process.env["COOKIE_SECURE"] === "true";
+}
+
+function cookieOptions() {
+  const secure = isCookieSecure();
+  return {
+    httpOnly: true as const,
+    secure,
+    sameSite: (secure ? "none" : "lax") as "none" | "lax",
+    maxAge: COOKIE_MAX_AGE_MS,
+  };
 }
 
 const SetupBody = z.object({
@@ -27,8 +42,13 @@ const LoginBody = z.object({
   password: z.string().min(1),
 });
 
-// POST /api/auth/setup Ã¢â‚¬â€ cria o primeiro administrador.
-// So funciona se ainda nao existir nenhum usuario no banco (protege contra uso indevido depois).
+const ChangePasswordBody = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6),
+});
+
+// POST /api/auth/setup - creates the first administrator.
+// Only works if no user exists yet in the database (protects against misuse afterwards).
 router.post("/auth/setup", async (req, res) => {
   try {
     const [existing] = await db.select({ id: usersTable.id }).from(usersTable).limit(1);
@@ -69,25 +89,13 @@ router.post("/auth/login", async (req, res) => {
 
     const token = jwt.sign({ sub: user.id, role: user.role }, getJwtSecret(), { expiresIn: "7d" });
 
-    res.cookie(COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env["NODE_ENV"] === "production",
-      sameSite: "lax",
-      maxAge: COOKIE_MAX_AGE_MS,
-    });
+    res.cookie(COOKIE_NAME, token, cookieOptions());
 
     return res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
   } catch (err) {
     req.log.error(err, "authLogin error");
     return res.status(500).json({ error: "Internal server error" });
   }
-});
-
-import { requireAuth, type AuthedRequest } from "../middleware/requireAuth";
-
-const ChangePasswordBody = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(6),
 });
 
 // POST /api/auth/change-password
@@ -114,7 +122,8 @@ router.post("/auth/change-password", requireAuth, async (req: AuthedRequest, res
 
 // POST /api/auth/logout
 router.post("/auth/logout", (req, res) => {
-  res.clearCookie(COOKIE_NAME);
+  const opts = cookieOptions();
+  res.clearCookie(COOKIE_NAME, { httpOnly: opts.httpOnly, secure: opts.secure, sameSite: opts.sameSite });
   return res.status(204).send();
 });
 
