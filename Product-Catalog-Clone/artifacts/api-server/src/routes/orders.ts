@@ -9,8 +9,16 @@ import {
   UpdateOrderParams,
   DeleteOrderParams,
 } from "@workspace/api-zod";
+import { notifyConsultant } from "../lib/push";
 
 const router = Router();
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pendente",
+  confirmed: "Confirmado",
+  delivered: "Entregue",
+  cancelled: "Cancelado",
+};
 
 // GET /api/orders
 router.get("/orders", async (req, res) => {
@@ -49,17 +57,10 @@ router.post("/orders", async (req, res) => {
     const body = CreateOrderBody.safeParse(req.body);
     if (!body.success) return res.status(400).json({ error: "Invalid body" });
 
-    // Fetch consultant
     const [consultant] = await db.select().from(consultantsTable).where(eq(consultantsTable.id, body.data.consultantId));
     if (!consultant) return res.status(400).json({ error: "Consultant not found" });
 
-    // Fetch products for all items
     const productIds = body.data.items.map(i => i.productId);
-    const productsFound = await db.select().from(productsTable).where(
-      // Filter by productId in list
-      and(...productIds.map(id => eq(productsTable.id, id)).slice(0, 1)) // simple fetch
-    );
-    // Fetch each product individually for safety
     const productMap = new Map<number, typeof productsTable.$inferSelect>();
     for (const pid of productIds) {
       if (!productMap.has(pid)) {
@@ -68,11 +69,10 @@ router.post("/orders", async (req, res) => {
       }
     }
 
-    // Calculate totals
     let totalAmount = 0;
     const items = body.data.items.map(item => {
       const product = productMap.get(item.productId);
-      if (!product) throw new Error(`Product ${item.productId} not found`);
+      if (!product) throw new Error("Product " + item.productId + " not found");
       const unitPrice = product.price;
       const subtotal = unitPrice * item.quantity;
       totalAmount += subtotal;
@@ -89,7 +89,6 @@ router.post("/orders", async (req, res) => {
 
     const commissionAmount = Math.round(totalAmount * (consultant.commissionRate / 100));
 
-    // Insert order
     const [order] = await db.insert(ordersTable).values({
       consultantId: body.data.consultantId,
       status: "pending",
@@ -99,7 +98,6 @@ router.post("/orders", async (req, res) => {
       notes: body.data.notes ?? null,
     }).returning();
 
-    // Insert order items
     await db.insert(orderItemsTable).values(
       items.map(item => ({ ...item, orderId: order.id }))
     );
@@ -153,6 +151,15 @@ router.patch("/orders/:id", async (req, res) => {
     if (!order) return res.status(404).json({ error: "Order not found" });
 
     const [consultant] = await db.select().from(consultantsTable).where(eq(consultantsTable.id, order.consultantId));
+
+    if (body.data.status !== undefined) {
+      const label = STATUS_LABELS[body.data.status] ?? body.data.status;
+      notifyConsultant(order.consultantId, {
+        title: "Status do pedido atualizado",
+        body: "Seu pedido #" + order.id + " agora esta: " + label,
+      }).catch((err) => req.log.error(err, "notifyConsultant failed"));
+    }
+
     return res.json(toOrder(order, consultant?.name ?? ""));
   } catch (err) {
     req.log.error(err, "updateOrder error");

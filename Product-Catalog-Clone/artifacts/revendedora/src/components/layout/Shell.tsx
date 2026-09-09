@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, Package, Users, ShoppingBag, PlusCircle, Settings as SettingsIcon, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingBag, PlusCircle, Settings as SettingsIcon, LogOut, Bell, BellRing } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 
 interface ShellProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ interface ShellProps {
 export function Shell({ children }: ShellProps) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { supported, permission, subscribing, subscribe } = usePushNotifications('/api/push/subscribe');
 
   const navItems = [
     { href: '/', label: 'Painel', icon: LayoutDashboard },
@@ -19,6 +21,8 @@ export function Shell({ children }: ShellProps) {
     { href: '/pedidos', label: 'Pedidos', icon: ShoppingBag },
     { href: '/configuracoes', label: 'Configuracoes', icon: SettingsIcon },
   ];
+
+  const notifEnabled = permission === 'granted';
 
   return (
     <div className="min-h-screen flex bg-background w-full font-sans text-foreground">
@@ -50,6 +54,23 @@ export function Shell({ children }: ShellProps) {
           })}
         </nav>
         <div className="p-4 border-t border-border space-y-3">
+          {supported && !notifEnabled && (
+            <button
+              onClick={() => subscribe()}
+              disabled={subscribing}
+              className="flex items-center justify-center gap-2 w-full border border-border py-2 rounded-md text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+              data-testid="button-enable-notifications"
+            >
+              <Bell className="h-3.5 w-3.5" />
+              {subscribing ? 'Ativando...' : 'Ativar notificacoes'}
+            </button>
+          )}
+          {notifEnabled && (
+            <div className="flex items-center justify-center gap-2 w-full py-1 rounded-md text-xs text-muted-foreground">
+              <BellRing className="h-3.5 w-3.5 text-primary" />
+              Notificacoes ativas
+            </div>
+          )}
           <Link
             href="/pedidos/novo"
             className="flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground py-2.5 rounded-md text-sm font-medium hover:brightness-110 transition-all shadow-sm"
@@ -81,6 +102,11 @@ export function Shell({ children }: ShellProps) {
             <h1 translate="no" className="notranslate font-serif text-base font-semibold text-primary">Elisssence Parfum</h1>
           </div>
           <div className="flex items-center gap-3">
+            {supported && !notifEnabled && (
+              <button onClick={() => subscribe()} disabled={subscribing} className="text-muted-foreground p-2" data-testid="button-enable-notifications-mobile">
+                <Bell className="h-5 w-5" />
+              </button>
+            )}
             <button onClick={() => logout()} className="text-muted-foreground p-2" data-testid="button-logout-mobile">
               <LogOut className="h-5 w-5" />
             </button>

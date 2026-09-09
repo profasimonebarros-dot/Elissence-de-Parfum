@@ -1,7 +1,8 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { db, consultantsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
+import { notifyAdmin } from "../lib/push";
 
 const router = Router();
 
@@ -21,12 +22,12 @@ async function getConsultantByToken(token: string) {
   return row ?? null;
 }
 
-// GET /api/portal/:token — consultant identity + summary stats
+// GET /api/portal/:token - consultant identity + summary stats
 router.get("/portal/:token", async (req, res) => {
   try {
     const consultant = await getConsultantByToken(req.params.token);
     if (!consultant || !consultant.active) {
-      return res.status(404).json({ error: "Link inválido ou inativo" });
+      return res.status(404).json({ error: "Link invalido ou inativo" });
     }
 
     const [statsRow] = await db
@@ -54,11 +55,11 @@ router.get("/portal/:token", async (req, res) => {
   }
 });
 
-// GET /api/portal/:token/orders — this consultant's order history
+// GET /api/portal/:token/orders - this consultant's order history
 router.get("/portal/:token/orders", async (req, res) => {
   try {
     const consultant = await getConsultantByToken(req.params.token);
-    if (!consultant) return res.status(404).json({ error: "Link inválido" });
+    if (!consultant) return res.status(404).json({ error: "Link invalido" });
 
     const orders = await db
       .select()
@@ -100,16 +101,16 @@ router.get("/portal/:token/orders", async (req, res) => {
   }
 });
 
-// POST /api/portal/:token/orders — consultant places a new order for herself
+// POST /api/portal/:token/orders - consultant places a new order for herself
 router.post("/portal/:token/orders", async (req, res) => {
   try {
     const consultant = await getConsultantByToken(req.params.token);
     if (!consultant || !consultant.active) {
-      return res.status(404).json({ error: "Link inválido ou inativo" });
+      return res.status(404).json({ error: "Link invalido ou inativo" });
     }
 
     const body = CreatePortalOrderBody.safeParse(req.body);
-    if (!body.success) return res.status(400).json({ error: "Dados inválidos" });
+    if (!body.success) return res.status(400).json({ error: "Dados invalidos" });
 
     const productMap = new Map<number, typeof productsTable.$inferSelect>();
     for (const item of body.data.items) {
@@ -122,7 +123,7 @@ router.post("/portal/:token/orders", async (req, res) => {
     let totalAmount = 0;
     const items = body.data.items.map((item) => {
       const product = productMap.get(item.productId);
-      if (!product) throw new Error(`Produto ${item.productId} não encontrado`);
+      if (!product) throw new Error("Produto " + item.productId + " nao encontrado");
       const subtotal = product.price * item.quantity;
       totalAmount += subtotal;
       return {
@@ -151,6 +152,12 @@ router.post("/portal/:token/orders", async (req, res) => {
       .returning();
 
     await db.insert(orderItemsTable).values(items.map((item) => ({ ...item, orderId: order.id })));
+
+    const totalDisplay = (order.totalAmount / 100).toFixed(2);
+    notifyAdmin({
+      title: "Novo pedido recebido",
+      body: "Pedido #" + order.id + " de " + consultant.name + " - R$ " + totalDisplay,
+    }).catch((err) => req.log.error(err, "notifyAdmin failed"));
 
     return res.status(201).json({
       id: order.id,
