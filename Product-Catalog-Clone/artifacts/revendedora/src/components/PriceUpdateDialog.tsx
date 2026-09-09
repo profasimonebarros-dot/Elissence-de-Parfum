@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { getListProductsQueryKey } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -123,6 +123,7 @@ export function PriceUpdateDialog({ open, onOpenChange }: { open: boolean; onOpe
     try {
       const res = await fetch(`${apiBase()}/api/products/bulk-price-update`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ updates: parsedRows }),
       });

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Wallet, CreditCard, Banknote, Landmark, ArrowLeftRight, QrCode, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,7 +25,7 @@ const PIX_KEY_TYPE_LABELS: Record<string, string> = {
   cnpj: 'CNPJ',
   email: 'Email',
   telefone: 'Telefone',
-  aleatoria: 'Chave Aleatória',
+  aleatoria: 'Chave Aleatoria',
 };
 
 function apiBase(): string {
@@ -35,10 +35,10 @@ function apiBase(): string {
 const PAYMENT_TOGGLES: Array<{ key: keyof SettingsData; label: string; icon: typeof Wallet }> = [
   { key: 'pixEnabled', label: 'PIX', icon: QrCode },
   { key: 'dinheiroEnabled', label: 'Dinheiro', icon: Banknote },
-  { key: 'cartaoCreditoEnabled', label: 'Cartão de Crédito', icon: CreditCard },
-  { key: 'cartaoDebitoEnabled', label: 'Cartão de Débito', icon: CreditCard },
+  { key: 'cartaoCreditoEnabled', label: 'Cartao de Credito', icon: CreditCard },
+  { key: 'cartaoDebitoEnabled', label: 'Cartao de Debito', icon: CreditCard },
   { key: 'boletoEnabled', label: 'Boleto', icon: Landmark },
-  { key: 'transferenciaEnabled', label: 'Transferência Bancária', icon: ArrowLeftRight },
+  { key: 'transferenciaEnabled', label: 'Transferencia Bancaria', icon: ArrowLeftRight },
 ];
 
 export default function Settings() {
@@ -61,7 +61,7 @@ export default function Settings() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${apiBase()}/api/settings`);
+        const res = await fetch(apiBase() + '/api/settings', { credentials: 'include' });
         if (res.ok) {
           const data: SettingsData = await res.json();
           setPixKey(data.pixKey ?? '');
@@ -85,8 +85,9 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${apiBase()}/api/settings`, {
+      const res = await fetch(apiBase() + '/api/settings', {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           pixKey: pixKey.trim() || null,
@@ -96,9 +97,9 @@ export default function Settings() {
         }),
       });
       if (!res.ok) throw new Error('failed');
-      toast({ title: 'Configurações salvas com sucesso' });
+      toast({ title: 'Configuracoes salvas com sucesso' });
     } catch {
-      toast({ title: 'Erro ao salvar configurações', variant: 'destructive' });
+      toast({ title: 'Erro ao salvar configuracoes', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -111,8 +112,8 @@ export default function Settings() {
   return (
     <div className="space-y-8 pb-12" data-testid="page-settings">
       <div>
-        <h1 className="text-3xl font-serif font-medium tracking-tight">Configurações</h1>
-        <p className="text-muted-foreground mt-1">Chave PIX e formas de pagamento disponíveis para as consultoras.</p>
+        <h1 className="text-3xl font-serif font-medium tracking-tight">Configuracoes</h1>
+        <p className="text-muted-foreground mt-1">Chave PIX e formas de pagamento disponiveis para as consultoras.</p>
       </div>
 
       {/* PIX */}
@@ -144,7 +145,7 @@ export default function Settings() {
           <div className="space-y-2">
             <Label>Chave PIX</Label>
             <Input
-              placeholder="CPF, email, telefone ou chave aleatória"
+              placeholder="CPF, email, telefone ou chave aleatoria"
               value={pixKey}
               onChange={(e) => setPixKey(e.target.value)}
             />
@@ -168,7 +169,7 @@ export default function Settings() {
           <h2 className="font-serif text-xl font-medium">Formas de Pagamento</h2>
         </div>
         <p className="text-sm text-muted-foreground -mt-3 mb-4">
-          Desative as formas de pagamento que você não aceita — elas somem da tela de pedido da consultora.
+          Desative as formas de pagamento que voce nao aceita - elas somem da tela de pedido da consultora.
         </p>
 
         {PAYMENT_TOGGLES.map(({ key, label, icon: Icon }) => (
@@ -187,7 +188,7 @@ export default function Settings() {
 
       <Button onClick={handleSave} disabled={saving} className="font-medium">
         <Save className="h-4 w-4 mr-2" />
-        {saving ? 'Salvando...' : 'Salvar Configurações'}
+        {saving ? 'Salvando...' : 'Salvar Configuracoes'}
       </Button>
     </div>
   );
