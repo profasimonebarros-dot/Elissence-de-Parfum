@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Wallet, CreditCard, Banknote, Landmark, ArrowLeftRight, QrCode, Save } from 'lucide-react';
+import { Wallet, CreditCard, Banknote, Landmark, ArrowLeftRight, QrCode, Save, Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
@@ -45,6 +45,12 @@ export default function Settings() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const [pixKey, setPixKey] = useState('');
   const [pixKeyType, setPixKeyType] = useState('');
@@ -102,6 +108,34 @@ export default function Settings() {
       toast({ title: 'Erro ao salvar configuracoes', variant: 'destructive' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast({ title: 'As senhas nao coincidem', variant: 'destructive' });
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const res = await fetch(apiBase() + '/api/auth/change-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? 'Falha ao trocar senha');
+      }
+      toast({ title: 'Senha alterada com sucesso' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : 'Erro ao trocar senha', variant: 'destructive' });
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -190,6 +224,64 @@ export default function Settings() {
         <Save className="h-4 w-4 mr-2" />
         {saving ? 'Salvando...' : 'Salvar Configuracoes'}
       </Button>
+
+      {/* Change password */}
+      <div className="bg-card border border-border rounded-lg p-6 space-y-4 max-w-2xl">
+        <div className="flex items-center gap-2">
+          <Lock className="h-5 w-5 text-primary" />
+          <h2 className="font-serif text-xl font-medium">Trocar Senha</h2>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Senha atual</Label>
+          <div className="relative">
+            <Input
+              type={showPasswords ? 'text' : 'password'}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPasswords((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              tabIndex={-1}
+            >
+              {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Nova senha</Label>
+            <Input
+              type={showPasswords ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              minLength={6}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Confirmar nova senha</Label>
+            <Input
+              type={showPasswords ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              minLength={6}
+            />
+          </div>
+        </div>
+
+        <Button
+          onClick={handleChangePassword}
+          disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+          variant="outline"
+          className="font-medium"
+        >
+          {changingPassword ? 'Alterando...' : 'Alterar Senha'}
+        </Button>
+      </div>
     </div>
   );
 }

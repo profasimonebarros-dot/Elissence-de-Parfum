@@ -27,7 +27,7 @@ const LoginBody = z.object({
   password: z.string().min(1),
 });
 
-// POST /api/auth/setup â€” cria o primeiro administrador.
+// POST /api/auth/setup Ã¢â‚¬â€ cria o primeiro administrador.
 // So funciona se ainda nao existir nenhum usuario no banco (protege contra uso indevido depois).
 router.post("/auth/setup", async (req, res) => {
   try {
@@ -79,6 +79,35 @@ router.post("/auth/login", async (req, res) => {
     return res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
   } catch (err) {
     req.log.error(err, "authLogin error");
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+import { requireAuth, type AuthedRequest } from "../middleware/requireAuth";
+
+const ChangePasswordBody = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6),
+});
+
+// POST /api/auth/change-password
+router.post("/auth/change-password", requireAuth, async (req: AuthedRequest, res) => {
+  try {
+    const body = ChangePasswordBody.safeParse(req.body);
+    if (!body.success) return res.status(400).json({ error: "Dados invalidos" });
+
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id)).limit(1);
+    if (!user) return res.status(401).json({ error: "Nao autenticado" });
+
+    const valid = await bcrypt.compare(body.data.currentPassword, user.passwordHash);
+    if (!valid) return res.status(400).json({ error: "Senha atual incorreta" });
+
+    const passwordHash = await bcrypt.hash(body.data.newPassword, 12);
+    await db.update(usersTable).set({ passwordHash }).where(eq(usersTable.id, user.id));
+
+    return res.status(204).send();
+  } catch (err) {
+    req.log.error(err, "changePassword error");
     return res.status(500).json({ error: "Internal server error" });
   }
 });
