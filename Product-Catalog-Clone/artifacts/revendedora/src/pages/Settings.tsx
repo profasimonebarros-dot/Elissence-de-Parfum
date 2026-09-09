@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Wallet, CreditCard, Banknote, Landmark, ArrowLeftRight, QrCode, Save, Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getStoredToken } from '@/lib/auth';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,8 +94,7 @@ export default function Settings() {
     try {
       const res = await fetch(apiBase() + '/api/settings', {
         method: 'PATCH',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + (getStoredToken() ?? '') },
         body: JSON.stringify({
           pixKey: pixKey.trim() || null,
           pixKeyType: pixKeyType || null,
@@ -120,8 +120,7 @@ export default function Settings() {
     try {
       const res = await fetch(apiBase() + '/api/auth/change-password', {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + (getStoredToken() ?? '') },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       if (!res.ok) {

@@ -15,7 +15,13 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
-type SubscribeEndpoint = () => Promise<string>;
+function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem('elisssence_session_token');
+  } catch {
+    return null;
+  }
+}
 
 export function usePushNotifications(subscribePath: string) {
   const [supported, setSupported] = useState(false);
@@ -53,10 +59,10 @@ export function usePushNotifications(subscribePath: string) {
       }
 
       const json = subscription.toJSON();
+      const token = getStoredToken();
       await fetch(apiBase() + subscribePath, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) },
         body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
       });
     } finally {

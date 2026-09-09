@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { setAuthTokenGetter } from '@workspace/api-client-react';
 
 type User = { id: number; name: string; email: string; role: string };
 
@@ -11,8 +12,19 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const TOKEN_KEY = 'elisssence_session_token';
+
 function apiBase(): string {
   return (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+}
+
+export function getStoredToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+function authHeader(): Record<string, string> {
+  const token = getStoredToken();
+  return token ? { authorization: 'Bearer ' + token } : {};
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -20,11 +32,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setAuthTokenGetter(() => getStoredToken());
+
     (async () => {
+      const token = getStoredToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
       try {
-        const res = await fetch(apiBase() + '/api/auth/me', { credentials: 'include' });
+        const res = await fetch(apiBase() + '/api/auth/me', { headers: authHeader() });
         if (res.ok) {
           setUser(await res.json());
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
         }
       } finally {
         setLoading(false);
@@ -35,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const res = await fetch(apiBase() + '/api/auth/login', {
       method: 'POST',
-      credentials: 'include',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
@@ -43,11 +63,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? 'Falha no login');
     }
-    setUser(await res.json());
+    const data = await res.json();
+    localStorage.setItem(TOKEN_KEY, data.token);
+    setAuthTokenGetter(() => data.token);
+    setUser({ id: data.id, name: data.name, email: data.email, role: data.role });
   };
 
   const logout = async () => {
-    await fetch(apiBase() + '/api/auth/logout', { method: 'POST', credentials: 'include' });
+    localStorage.removeItem(TOKEN_KEY);
+    setAuthTokenGetter(null);
     setUser(null);
   };
 

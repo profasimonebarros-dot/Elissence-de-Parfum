@@ -11,8 +11,16 @@ export interface AuthedRequest extends Request {
   user?: { id: number; role: string };
 }
 
+function extractToken(req: Request): string | null {
+  const header = req.headers.authorization;
+  if (header && header.startsWith("Bearer ")) {
+    return header.slice("Bearer ".length);
+  }
+  return null;
+}
+
 export function requireAuth(req: AuthedRequest, res: Response, next: NextFunction) {
-  const token = req.cookies?.["session"];
+  const token = extractToken(req);
   if (!token) return res.status(401).json({ error: "Nao autenticado" });
 
   try {

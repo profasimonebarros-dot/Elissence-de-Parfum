@@ -8,27 +8,10 @@ import { requireAuth, type AuthedRequest } from "../middleware/requireAuth";
 
 const router = Router();
 
-const COOKIE_NAME = "session";
-const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
-
 function getJwtSecret(): string {
   const secret = process.env["JWT_SECRET"];
   if (!secret) throw new Error("JWT_SECRET environment variable is required but was not provided.");
   return secret;
-}
-
-function isCookieSecure(): boolean {
-  return process.env["COOKIE_SECURE"] === "true";
-}
-
-function cookieOptions() {
-  const secure = isCookieSecure();
-  return {
-    httpOnly: true as const,
-    secure,
-    sameSite: (secure ? "none" : "lax") as "none" | "lax",
-    maxAge: COOKIE_MAX_AGE_MS,
-  };
 }
 
 const SetupBody = z.object({
@@ -70,7 +53,9 @@ router.post("/auth/setup", async (req, res) => {
   }
 });
 
-// POST /api/auth/login
+// POST /api/auth/login - returns a Bearer token in the response body (not a cookie),
+// since the frontend and backend run on different subdomains and modern browsers
+// increasingly block cross-site cookies.
 router.post("/auth/login", async (req, res) => {
   try {
     const body = LoginBody.safeParse(req.body);
@@ -89,9 +74,7 @@ router.post("/auth/login", async (req, res) => {
 
     const token = jwt.sign({ sub: user.id, role: user.role }, getJwtSecret(), { expiresIn: "7d" });
 
-    res.cookie(COOKIE_NAME, token, cookieOptions());
-
-    return res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+    return res.json({ token, id: user.id, name: user.name, email: user.email, role: user.role });
   } catch (err) {
     req.log.error(err, "authLogin error");
     return res.status(500).json({ error: "Internal server error" });
@@ -120,25 +103,21 @@ router.post("/auth/change-password", requireAuth, async (req: AuthedRequest, res
   }
 });
 
-// POST /api/auth/logout
-router.post("/auth/logout", (req, res) => {
-  const opts = cookieOptions();
-  res.clearCookie(COOKIE_NAME, { httpOnly: opts.httpOnly, secure: opts.secure, sameSite: opts.sameSite });
+// POST /api/auth/logout - with token auth this is client-side (drop the stored token),
+// this endpoint exists for symmetry and future use (e.g. token blocklist).
+router.post("/auth/logout", (_req, res) => {
   return res.status(204).send();
 });
 
 // GET /api/auth/me
-router.get("/auth/me", async (req, res) => {
+router.get("/auth/me", requireAuth, async (req: AuthedRequest, res) => {
   try {
-    const token = req.cookies?.[COOKIE_NAME];
-    if (!token) return res.status(401).json({ error: "Nao autenticado" });
-
-    const payload = jwt.verify(token, getJwtSecret()) as unknown as { sub: number; role: string };
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, payload.sub)).limit(1);
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id)).limit(1);
     if (!user || !user.active) return res.status(401).json({ error: "Nao autenticado" });
 
     return res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
-  } catch {
+  } catch (err) {
+    req.log.error(err, "authMe error");
     return res.status(401).json({ error: "Nao autenticado" });
   }
 });
