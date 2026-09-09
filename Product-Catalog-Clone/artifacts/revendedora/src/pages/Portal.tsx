@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRoute } from 'wouter';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { Bell, BellRing } from 'lucide-react';
-import { useListProducts, type OrderInputPaymentMethod } from '@workspace/api-client-react';
+import { type OrderInputPaymentMethod } from '@workspace/api-client-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
   Search,
@@ -110,7 +110,17 @@ export default function Portal() {
   const [orders, setOrders] = useState<PortalOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
-  const { data: products = [], isLoading: loadingProducts } = useListProducts({ active: true });
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
+  const loadProducts = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/portal/{token}/products`);
+      if (res.ok) setProducts(await res.json());
+    } finally {
+      setLoadingProducts(false);
+    }
+  }, [token]);
 
   const [paymentMethod, setPaymentMethod] = useState<OrderInputPaymentMethod | ''>('');
   const [notes, setNotes] = useState('');
@@ -166,7 +176,8 @@ export default function Portal() {
     if (!token) return;
     loadSummary();
     loadOrders();
-  }, [token, loadSummary, loadOrders]);
+    loadProducts();
+  }, [token, loadSummary, loadOrders, loadProducts]);
 
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return products;

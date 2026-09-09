@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db, consultantsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
+import { eq as eqOp } from "drizzle-orm";
 import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { notifyAdmin } from "../lib/push";
@@ -167,6 +168,41 @@ router.post("/portal/:token/orders", async (req, res) => {
     });
   } catch (err) {
     req.log.error(err, "createPortalOrder error");
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/portal/:token/products - public product catalog for the consultant's ordering page.
+// Scoped by a valid consultant token (not admin auth) so real consultants can browse
+// the catalog on their own devices without needing an admin login.
+router.get("/portal/:token/products", async (req, res) => {
+  try {
+    const consultant = await getConsultantByToken(req.params.token);
+    if (!consultant) return res.status(404).json({ error: "Link invalido" });
+
+    const rows = await db
+      .select()
+      .from(productsTable)
+      .where(eq(productsTable.active, true))
+      .orderBy(productsTable.name);
+
+    return res.json(
+      rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        brand: row.brand,
+        category: row.category,
+        description: row.description ?? null,
+        price: row.price,
+        originalPrice: row.originalPrice ?? null,
+        imageUrl: row.imageUrl,
+        active: row.active,
+        createdAt: row.createdAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString(),
+      })),
+    );
+  } catch (err) {
+    req.log.error(err, "listPortalProducts error");
     return res.status(500).json({ error: "Internal server error" });
   }
 });
