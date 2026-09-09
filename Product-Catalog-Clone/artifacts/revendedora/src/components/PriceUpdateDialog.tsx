@@ -20,9 +20,9 @@ function apiBase(): string {
   return (import.meta.env.VITE_API_URL as string | undefined) ?? '';
 }
 
-const ID_HEADER_CANDIDATES = ['id', 'id do produto', 'codigo', 'cÃƒÂ³digo'];
+const ID_HEADER_CANDIDATES = ['id', 'id do produto', 'codigo', 'código'];
 const NAME_HEADER_CANDIDATES = ['nome do produto', 'nome', 'produto'];
-const PRICE_HEADER_CANDIDATES = ['preÃƒÂ§o', 'preco', 'novo preÃƒÂ§o', 'novo preco', 'valor'];
+const PRICE_HEADER_CANDIDATES = ['preço', 'preco', 'novo preço', 'novo preco', 'valor'];
 
 function normalizeHeader(h: string): string {
   return h
@@ -81,7 +81,7 @@ export function PriceUpdateDialog({ open, onOpenChange }: { open: boolean; onOpe
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
 
       if (rows.length === 0) {
-        setParseError('A planilha estÃƒÂ¡ vazia.');
+        setParseError('A planilha está vazia.');
         return;
       }
 
@@ -92,7 +92,7 @@ export function PriceUpdateDialog({ open, onOpenChange }: { open: boolean; onOpe
 
       if (!nameHeader || !priceHeader) {
         setParseError(
-          'NÃƒÂ£o encontrei as colunas esperadas. Use uma coluna "Nome do Produto" e outra "PreÃƒÂ§o".',
+          'Não encontrei as colunas esperadas. Use uma coluna "Nome do Produto" e outra "Preço".',
         );
         return;
       }
@@ -109,13 +109,13 @@ export function PriceUpdateDialog({ open, onOpenChange }: { open: boolean; onOpe
       }
 
       if (parsed.length === 0) {
-        setParseError('Nenhuma linha vÃƒÂ¡lida encontrada na planilha.');
+        setParseError('Nenhuma linha válida encontrada na planilha.');
         return;
       }
 
       setParsedRows(parsed);
     } catch {
-      setParseError('NÃƒÂ£o consegui ler esse arquivo. Confirme que ÃƒÂ© um .xlsx vÃƒÂ¡lido.');
+      setParseError('Não consegui ler esse arquivo. Confirme que é um .xlsx válido.');
     }
   };
 
@@ -133,7 +133,7 @@ export function PriceUpdateDialog({ open, onOpenChange }: { open: boolean; onOpe
       queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
       toast({ title: `${data.updated} produto(s) atualizado(s)` });
     } catch {
-      toast({ title: 'Erro ao atualizar preÃƒÂ§os', variant: 'destructive' });
+      toast({ title: 'Erro ao atualizar preços', variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -143,7 +143,7 @@ export function PriceUpdateDialog({ open, onOpenChange }: { open: boolean; onOpe
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">Atualizar PreÃƒÂ§os via Planilha</DialogTitle>
+          <DialogTitle className="font-serif text-2xl">Atualizar Preços via Planilha</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
@@ -151,8 +151,8 @@ export function PriceUpdateDialog({ open, onOpenChange }: { open: boolean; onOpe
             <>
               <p className="text-sm text-muted-foreground">
                 Envie um arquivo <strong>.xlsx</strong> com uma coluna <strong>Nome do Produto</strong> e uma
-                coluna <strong>PreÃƒÂ§o</strong> (ex: 199,90). Se a planilha tiver uma coluna <strong>ID</strong>{' '}
-                (como a exportada pelo sistema), ela ÃƒÂ© usada pra identificar o produto com mais precisÃƒÂ£o.
+                coluna <strong>Preço</strong> (ex: 199,90). Se a planilha tiver uma coluna <strong>ID</strong>{' '}
+                (como a exportada pelo sistema), ela é usada pra identificar o produto com mais precisão.
               </p>
 
               <label
@@ -218,7 +218,7 @@ export function PriceUpdateDialog({ open, onOpenChange }: { open: boolean; onOpe
               {result.notFound.length > 0 && (
                 <div className="border border-border rounded-md">
                   <div className="px-3 py-2 border-b border-border bg-muted/30 text-sm font-medium">
-                    {result.notFound.length} nome(s) nÃƒÂ£o encontrados no catÃƒÂ¡logo
+                    {result.notFound.length} nome(s) não encontrados no catálogo
                   </div>
                   <div className="max-h-40 overflow-y-auto divide-y divide-border">
                     {result.notFound.map((name, idx) => (

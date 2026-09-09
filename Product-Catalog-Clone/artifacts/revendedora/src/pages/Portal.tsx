@@ -77,7 +77,7 @@ function apiBase(): string {
 
 // Matches Tailwind's `lg` breakpoint. Used so the cart/checkout form (which
 // contains interactive Radix components like Select) is only ever mounted
-// ONCE at a time Ã¢â‚¬â€ either in the desktop sidebar or the mobile bottom sheet,
+// ONCE at a time — either in the desktop sidebar or the mobile bottom sheet,
 // never both simultaneously (having two live instances bound to the same
 // state caused a crash on some mobile browsers).
 function useIsDesktop(): boolean {
@@ -218,7 +218,7 @@ export default function Portal() {
 
   const handleSubmit = async () => {
     if (cart.length === 0) {
-      toast({ title: 'O pedido estÃƒÂ¡ vazio', variant: 'destructive' });
+      toast({ title: 'O pedido está vazio', variant: 'destructive' });
       return;
     }
 
@@ -268,14 +268,14 @@ export default function Portal() {
               {(storeSettings?.pixEnabled ?? true) && <SelectItem value="pix">PIX</SelectItem>}
               {(storeSettings?.dinheiroEnabled ?? true) && <SelectItem value="dinheiro">Dinheiro</SelectItem>}
               {(storeSettings?.cartaoCreditoEnabled ?? true) && (
-                <SelectItem value="cartao_credito">CartÃƒÂ£o de CrÃƒÂ©dito</SelectItem>
+                <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
               )}
               {(storeSettings?.cartaoDebitoEnabled ?? true) && (
-                <SelectItem value="cartao_debito">CartÃƒÂ£o de DÃƒÂ©bito</SelectItem>
+                <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
               )}
               {(storeSettings?.boletoEnabled ?? true) && <SelectItem value="boleto">Boleto</SelectItem>}
               {(storeSettings?.transferenciaEnabled ?? true) && (
-                <SelectItem value="transferencia">TransferÃƒÂªncia BancÃƒÂ¡ria</SelectItem>
+                <SelectItem value="transferencia">Transferência Bancária</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -296,8 +296,8 @@ export default function Portal() {
         {cart.length === 0 ? (
           <div className="text-center text-muted-foreground py-10 flex flex-col items-center">
             <ShoppingBag className="h-10 w-10 opacity-20 mb-2" />
-            <p className="text-sm">O pedido estÃƒÂ¡ vazio</p>
-            <p className="text-xs mt-1">Adicione perfumes pelo catÃƒÂ¡logo</p>
+            <p className="text-sm">O pedido está vazio</p>
+            <p className="text-xs mt-1">Adicione perfumes pelo catálogo</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -341,9 +341,9 @@ export default function Portal() {
         )}
 
         <div className="mt-6 space-y-2">
-          <label className="text-sm font-medium">ObservaÃƒÂ§ÃƒÂµes do Pedido</label>
+          <label className="text-sm font-medium">Observações do Pedido</label>
           <Textarea
-            placeholder="EndereÃƒÂ§o de entrega, embalagem p/ presente..."
+            placeholder="Endereço de entrega, embalagem p/ presente..."
             className="resize-none h-20 text-sm"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -359,7 +359,7 @@ export default function Portal() {
           </div>
           {summary && (
             <div className="flex justify-between text-primary font-medium">
-              <span>Sua ComissÃƒÂ£o Estimada ({summary.commissionRate}%)</span>
+              <span>Sua Comissão Estimada ({summary.commissionRate}%)</span>
               <span>{formatCurrency(estimatedCommission)}</span>
             </div>
           )}
@@ -411,9 +411,9 @@ export default function Portal() {
       <div className="min-h-screen flex items-center justify-center bg-background px-6">
         <div className="text-center max-w-sm">
           <PackageSearch className="h-10 w-10 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h1 className="font-serif text-xl font-medium mb-2">Link invÃƒÂ¡lido</h1>
+          <h1 className="font-serif text-xl font-medium mb-2">Link inválido</h1>
           <p className="text-sm text-muted-foreground">
-            Esse link nÃƒÂ£o ÃƒÂ© vÃƒÂ¡lido ou a consultora estÃƒÂ¡ inativa. Confirme o link com quem te enviou.
+            Esse link não é válido ou a consultora está inativa. Confirme o link com quem te enviou.
           </p>
         </div>
       </div>
@@ -432,7 +432,7 @@ export default function Portal() {
               <div className="h-5 w-40 bg-muted rounded animate-pulse mt-1" />
             ) : (
               <p className="text-muted-foreground text-sm mt-0.5">
-                OlÃƒÂ¡, <span className="font-medium text-foreground">{summary?.name}</span> Ã¢â‚¬â€ comissÃƒÂ£o de{' '}
+                Olá, <span className="font-medium text-foreground">{summary?.name}</span> — comissão de{' '}
                 {summary?.commissionRate}% sobre suas vendas
               </p>
             )}
@@ -447,11 +447,11 @@ export default function Portal() {
             { label: 'Pedidos', value: summary?.totalOrders ?? 0, icon: ClipboardList },
             { label: 'Pendentes', value: summary?.pendingOrders ?? 0, icon: ShoppingBag },
             { label: 'Total vendido', value: formatCurrency(summary?.totalRevenue ?? 0), icon: PackageSearch },
-            { label: 'Sua comissÃƒÂ£o', value: formatCurrency(summary?.totalCommission ?? 0), icon: Wallet },
+            { label: 'Sua comissão', value: formatCurrency(summary?.totalCommission ?? 0), icon: Wallet },
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} className="bg-card border border-border rounded-lg p-4">
               <Icon className="h-4 w-4 text-muted-foreground mb-2" />
-              <p className="text-xl font-serif font-semibold">{loadingSummary ? 'Ã¢â‚¬â€' : value}</p>
+              <p className="text-xl font-serif font-semibold">{loadingSummary ? '—' : value}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
             </div>
           ))}
@@ -466,7 +466,7 @@ export default function Portal() {
           {/* Novo pedido */}
           <TabsContent value="novo" className="pt-6">
             {loadingProducts ? (
-              <div className="p-8 text-center animate-pulse text-muted-foreground">Carregando catÃƒÂ¡logo...</div>
+              <div className="p-8 text-center animate-pulse text-muted-foreground">Carregando catálogo...</div>
             ) : (
               <>
               <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -474,7 +474,7 @@ export default function Portal() {
                   <div className="bg-card p-2 rounded-lg border border-border shadow-sm flex items-center sticky top-0 z-10">
                     <Search className="h-4 w-4 text-muted-foreground ml-3 mr-2" />
                     <Input
-                      placeholder="Buscar perfumes no catÃƒÂ¡logo..."
+                      placeholder="Buscar perfumes no catálogo..."
                       className="bg-transparent border-none shadow-none focus-visible:ring-0 flex-1"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -553,14 +553,14 @@ export default function Portal() {
             )}
           </TabsContent>
 
-          {/* HistÃƒÂ³rico */}
+          {/* Histórico */}
           <TabsContent value="historico" className="pt-6">
             {loadingOrders ? (
               <div className="p-8 text-center animate-pulse text-muted-foreground">Carregando pedidos...</div>
             ) : orders.length === 0 ? (
               <div className="text-center py-20 bg-card rounded-lg border border-border border-dashed">
                 <ClipboardList className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-40" />
-                <p className="text-sm text-muted-foreground">VocÃƒÂª ainda nÃƒÂ£o fez nenhum pedido.</p>
+                <p className="text-sm text-muted-foreground">Você ainda não fez nenhum pedido.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -589,7 +589,7 @@ export default function Portal() {
 
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Sua comissÃƒÂ£o: <span className="font-medium text-primary">{formatCurrency(order.commissionAmount)}</span>
+                        Sua comissão: <span className="font-medium text-primary">{formatCurrency(order.commissionAmount)}</span>
                       </span>
                       <span className="font-serif font-semibold text-base">{formatCurrency(order.totalAmount)}</span>
                     </div>
