@@ -1,7 +1,8 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { db, settingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
 
@@ -41,7 +42,7 @@ function toSettings(row: typeof settingsTable.$inferSelect) {
   };
 }
 
-// GET /api/settings — public (no auth in this app); used by the admin settings
+// GET /api/settings - public (no auth in this app); used by the admin settings
 // page AND by the consultant portal to display the PIX key at checkout.
 router.get("/settings", async (req, res) => {
   try {
@@ -54,10 +55,10 @@ router.get("/settings", async (req, res) => {
 });
 
 // PATCH /api/settings
-router.patch("/settings", async (req, res) => {
+router.patch("/settings", requireAuth, async (req, res) => {
   try {
     const body = UpdateSettingsBody.safeParse(req.body);
-    if (!body.success) return res.status(400).json({ error: "Dados inválidos" });
+    if (!body.success) return res.status(400).json({ error: "Dados invalidos" });
 
     const existing = await getOrCreateSettings();
 
