@@ -26,7 +26,7 @@ const PIX_KEY_TYPE_LABELS: Record<string, string> = {
   cnpj: 'CNPJ',
   email: 'Email',
   telefone: 'Telefone',
-  aleatoria: 'Chave Aleatoria',
+  aleatoria: 'Chave Aleatória',
 };
 
 function apiBase(): string {
@@ -110,9 +110,9 @@ export default function Settings() {
         }),
       });
       if (!res.ok) throw new Error('failed');
-      toast({ title: 'Configuracoes salvas com sucesso' });
+      toast({ title: 'Configurações salvas com sucesso' });
     } catch {
-      toast({ title: 'Erro ao salvar configuracoes', variant: 'destructive' });
+      toast({ title: 'Erro ao salvar configurações', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -174,7 +174,7 @@ export default function Settings() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast({ title: 'As senhas nao coincidem', variant: 'destructive' });
+      toast({ title: 'As senhas não coincidem', variant: 'destructive' });
       return;
     }
     setChangingPassword(true);
@@ -206,7 +206,7 @@ export default function Settings() {
   return (
     <div className="space-y-8 pb-12" data-testid="page-settings">
       <div>
-        <h1 className="text-3xl font-serif font-medium tracking-tight">Configuracoes</h1>
+        <h1 className="text-3xl font-serif font-medium tracking-tight">Configurações</h1>
         <p className="text-muted-foreground mt-1">Chave PIX e formas de pagamento disponiveis para as consultoras.</p>
       </div>
 
@@ -239,7 +239,7 @@ export default function Settings() {
           <div className="space-y-2">
             <Label>Chave PIX</Label>
             <Input
-              placeholder="CPF, email, telefone ou chave aleatoria"
+              placeholder="CPF, email, telefone ou chave aleatória"
               value={pixKey}
               onChange={(e) => setPixKey(e.target.value)}
             />
@@ -263,7 +263,7 @@ export default function Settings() {
           <h2 className="font-serif text-xl font-medium">Formas de Pagamento</h2>
         </div>
         <p className="text-sm text-muted-foreground -mt-3 mb-4">
-          Desative as formas de pagamento que voce nao aceita - elas somem da tela de pedido da consultora.
+          Desative as formas de pagamento que você não aceita - elas somem da tela de pedido da consultora.
         </p>
 
         {PAYMENT_TOGGLES.map(({ key, label, icon: Icon }) => (
@@ -282,7 +282,7 @@ export default function Settings() {
 
       <Button onClick={handleSave} disabled={saving} className="font-medium">
         <Save className="h-4 w-4 mr-2" />
-        {saving ? 'Salvando...' : 'Salvar Configuracoes'}
+        {saving ? 'Salvando...' : 'Salvar Configurações'}
       </Button>
 
       {/* Change password */}
@@ -350,7 +350,7 @@ export default function Settings() {
           <h2 className="font-serif text-xl font-medium">Administradores</h2>
         </div>
         <p className="text-sm text-muted-foreground -mt-3">
-          Pessoas com acesso completo ao painel (produtos, pedidos, consultoras e configuracoes).
+          Pessoas com acesso completo ao painel (produtos, pedidos, consultoras e configurações).
         </p>
 
         {loadingAdmins ? (
@@ -381,7 +381,7 @@ export default function Settings() {
             <Input placeholder="Nome" value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} />
             <Input placeholder="Email" type="email" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
           </div>
-          <Input placeholder="Senha (minimo 6 caracteres)" type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} />
+          <Input placeholder="Senha (mínimo 6 caracteres)" type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} />
           <Button
             onClick={handleCreateAdmin}
             disabled={creatingAdmin || !newAdminName || !newAdminEmail || newAdminPassword.length < 6}
