@@ -611,6 +611,9 @@ export default function Portal() {
           </TabsContent>
         </Tabs>
       </main>
+      <footer className="px-4 md:px-8 py-4 text-center text-xs text-muted-foreground border-t border-border bg-card">
+        Imagens meramente ilustrativas. Todos os direitos sobre marcas e imagens pertencem aos seus respectivos fabricantes. Prazo de entrega: até 15 dias úteis.
+      </footer>
     </div>
   );
 }
