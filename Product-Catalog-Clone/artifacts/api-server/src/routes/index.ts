@@ -8,6 +8,7 @@ import portalRouter from "./portal";
 import settingsRouter from "./settings";
 import authRouter from "./auth";
 import pushRouter from "./push";
+import usersRouter from "./users";
 import { requireAuth } from "../middleware/requireAuth";
 
 const router: IRouter = Router();
@@ -21,5 +22,6 @@ router.use(requireAuth, productsRouter);
 router.use(requireAuth, consultantsRouter);
 router.use(requireAuth, ordersRouter);
 router.use(requireAuth, dashboardRouter);
+router.use(usersRouter);
 
 export default router;

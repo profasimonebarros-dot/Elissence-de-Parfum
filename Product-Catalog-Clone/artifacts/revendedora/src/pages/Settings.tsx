@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Wallet, CreditCard, Banknote, Landmark, ArrowLeftRight, QrCode, Save, Lock, Eye, EyeOff } from 'lucide-react';
+import { Wallet, CreditCard, Banknote, Landmark, ArrowLeftRight, QrCode, Save, Lock, Eye, EyeOff, UserPlus, Users, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getStoredToken } from '@/lib/auth';
 
@@ -52,6 +52,13 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [loadingAdmins, setLoadingAdmins] = useState(true);
+  const [newAdminName, setNewAdminName] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
 
   const [pixKey, setPixKey] = useState('');
   const [pixKeyType, setPixKeyType] = useState('');
@@ -110,6 +117,60 @@ export default function Settings() {
       setSaving(false);
     }
   };
+
+  const loadAdmins = async () => {
+    try {
+      const res = await fetch(apiBase() + '/api/users', { headers: { authorization: 'Bearer ' + (getStoredToken() ?? '') } });
+      if (res.ok) setAdmins(await res.json());
+    } finally {
+      setLoadingAdmins(false);
+    }
+  };
+
+  const handleCreateAdmin = async () => {
+    setCreatingAdmin(true);
+    try {
+      const res = await fetch(apiBase() + '/api/users', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + (getStoredToken() ?? '') },
+        body: JSON.stringify({ name: newAdminName, email: newAdminEmail, password: newAdminPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? 'Falha ao criar administrador');
+      }
+      toast({ title: 'Administrador criado com sucesso' });
+      setNewAdminName('');
+      setNewAdminEmail('');
+      setNewAdminPassword('');
+      loadAdmins();
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : 'Erro ao criar administrador', variant: 'destructive' });
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
+  const handleToggleAdmin = async (id: number, active: boolean) => {
+    try {
+      const res = await fetch(apiBase() + '/api/users/' + id, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + (getStoredToken() ?? '') },
+        body: JSON.stringify({ active }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? 'Falha ao atualizar administrador');
+      }
+      loadAdmins();
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : 'Erro ao atualizar administrador', variant: 'destructive' });
+    }
+  };
+
+  useEffect(() => {
+    loadAdmins();
+  }, []);
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -280,6 +341,57 @@ export default function Settings() {
         >
           {changingPassword ? 'Alterando...' : 'Alterar Senha'}
         </Button>
+      </div>
+
+      {/* Admin management */}
+      <div className="bg-card border border-border rounded-lg p-6 space-y-4 max-w-2xl">
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-primary" />
+          <h2 className="font-serif text-xl font-medium">Administradores</h2>
+        </div>
+        <p className="text-sm text-muted-foreground -mt-3">
+          Pessoas com acesso completo ao painel (produtos, pedidos, consultoras e configuracoes).
+        </p>
+
+        {loadingAdmins ? (
+          <p className="text-sm text-muted-foreground">Carregando...</p>
+        ) : (
+          <div className="space-y-2">
+            {admins.map((admin) => (
+              <div key={admin.id} className="flex items-center justify-between py-2 border-b border-border last:border-b-0">
+                <div>
+                  <p className="text-sm font-medium">{admin.name}</p>
+                  <p className="text-xs text-muted-foreground">{admin.email}</p>
+                </div>
+                <button
+                  onClick={() => handleToggleAdmin(admin.id, !admin.active)}
+                  className={"flex items-center gap-1 text-xs px-2 py-1 rounded-full border " + (admin.active ? "border-emerald-300 text-emerald-700 bg-emerald-50" : "border-border text-muted-foreground")}
+                >
+                  {admin.active ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                  {admin.active ? 'Ativo' : 'Inativo'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="pt-4 border-t border-border space-y-3">
+          <Label className="text-sm font-medium">Adicionar novo administrador</Label>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Input placeholder="Nome" value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} />
+            <Input placeholder="Email" type="email" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
+          </div>
+          <Input placeholder="Senha (minimo 6 caracteres)" type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} />
+          <Button
+            onClick={handleCreateAdmin}
+            disabled={creatingAdmin || !newAdminName || !newAdminEmail || newAdminPassword.length < 6}
+            variant="outline"
+            className="font-medium"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            {creatingAdmin ? 'Criando...' : 'Criar Administrador'}
+          </Button>
+        </div>
       </div>
     </div>
   );
