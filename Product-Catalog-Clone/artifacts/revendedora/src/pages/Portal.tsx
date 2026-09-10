@@ -436,7 +436,7 @@ export default function Portal() {
       {pushButton}
       <header className="border-b border-border bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
-          <img src="/logo.png" alt="Elisssence Parfum" className="h-16 w-16 rounded-full object-cover shrink-0 ring-2 ring-primary/40 shadow-sm" />
+          <img src="/logo.png" alt="Elisssence Parfum" className="h-16 w-16 rounded-full object-cover shrink-0" />
           <div>
             <h1 translate="no" className="notranslate font-serif text-lg font-semibold tracking-wide text-primary leading-tight">Elisssence Parfum</h1>
             {loadingSummary ? (

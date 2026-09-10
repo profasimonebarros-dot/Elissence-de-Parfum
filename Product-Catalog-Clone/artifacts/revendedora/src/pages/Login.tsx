@@ -30,7 +30,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <img src="/logo.png" alt="Elisssence Parfum" className="h-16 w-16 rounded-full object-cover mx-auto ring-2 ring-primary/40 shadow-sm" />
+          <img src="/logo.png" alt="Elisssence Parfum" className="h-16 w-16 rounded-full object-cover mx-auto" />
           <h1 translate="no" className="notranslate font-serif text-xl font-semibold text-primary">Elisssence Parfum</h1>
           <p className="text-sm text-muted-foreground">Entre para acessar o painel</p>
         </div>
