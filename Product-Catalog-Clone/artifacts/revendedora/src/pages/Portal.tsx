@@ -443,8 +443,7 @@ export default function Portal() {
               <div className="h-5 w-40 bg-muted rounded animate-pulse mt-1" />
             ) : (
               <p className="text-muted-foreground text-sm mt-0.5">
-                Olá, <span className="font-medium text-foreground">{summary?.name}</span> — comissão de{' '}
-                {summary?.commissionRate}% sobre suas vendas
+                Seja bem-vinda, <span className="font-medium text-foreground">{summary?.name}</span>!
               </p>
             )}
           </div>
