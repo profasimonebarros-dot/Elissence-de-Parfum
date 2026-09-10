@@ -16,10 +16,10 @@ export function Shell({ children }: ShellProps) {
 
   const navItems = [
     { href: '/', label: 'Painel', icon: LayoutDashboard },
-    { href: '/produtos', label: 'Catalogo', icon: Package },
+    { href: '/produtos', label: 'Catálogo', icon: Package },
     { href: '/consultoras', label: 'Consultoras', icon: Users },
     { href: '/pedidos', label: 'Pedidos', icon: ShoppingBag },
-    { href: '/configuracoes', label: 'Configuracoes', icon: SettingsIcon },
+    { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
   ];
 
   const notifEnabled = permission === 'granted';
@@ -62,13 +62,13 @@ export function Shell({ children }: ShellProps) {
               data-testid="button-enable-notifications"
             >
               <Bell className="h-3.5 w-3.5" />
-              {subscribing ? 'Ativando...' : 'Ativar notificacoes'}
+              {subscribing ? 'Ativando...' : 'Ativar notificações'}
             </button>
           )}
           {notifEnabled && (
             <div className="flex items-center justify-center gap-2 w-full py-1 rounded-md text-xs text-muted-foreground">
               <BellRing className="h-3.5 w-3.5 text-primary" />
-              Notificacoes ativas
+              Notificações ativas
             </div>
           )}
           <Link
