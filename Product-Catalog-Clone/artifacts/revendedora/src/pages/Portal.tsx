@@ -115,7 +115,7 @@ export default function Portal() {
 
   const loadProducts = useCallback(async () => {
     try {
-      const res = await fetch(`/api/portal/{token}/products`);
+      const res = await fetch(apiBase() + "/api/portal/" + token + "/products");
       if (res.ok) setProducts(await res.json());
     } finally {
       setLoadingProducts(false);
