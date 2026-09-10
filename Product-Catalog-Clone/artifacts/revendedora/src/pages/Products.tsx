@@ -134,10 +134,6 @@ export default function Products() {
             <Percent className="h-4 w-4 mr-2" />
             Ajustar %
           </Button>
-          <Button onClick={() => setIsPercentUpdateOpen(true)} variant="outline" className="flex-1 sm:flex-none font-medium" data-testid="btn-percent-price-update">
-            <Percent className="h-4 w-4 mr-2" />
-            Ajustar %
-          </Button>
           <Button onClick={() => setIsAddOpen(true)} className="flex-1 sm:flex-none font-medium" data-testid="btn-add-product">
             <Plus className="h-4 w-4 mr-2" />
             Novo Produto
