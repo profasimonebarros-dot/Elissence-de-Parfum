@@ -1,6 +1,6 @@
-﻿import { Router } from "express";
-import { db, productsTable } from "@workspace/db";
-import { eq, ilike, and, SQL } from "drizzle-orm";
+import { Router } from "express";
+import { db, productsTable, priceBatchesTable } from "@workspace/db";
+import { eq, ilike, and, desc, SQL } from "drizzle-orm";
 import { z } from "zod";
 import {
   ListProductsQueryParams,
@@ -124,6 +124,104 @@ router.post("/products/bulk-price-update", async (req, res) => {
     return res.json({ updated, notFound });
   } catch (err) {
     req.log.error(err, "bulkPriceUpdate error");
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+const BulkPercentageUpdateBody = z.object({
+  percentage: z.number().min(-90).max(500),
+  category: z.string().nullish(),
+});
+
+// POST /api/products/bulk-percentage-update - applies a flat % increase/decrease
+// to all matching products' price, and stores a snapshot so it can be reverted.
+router.post("/products/bulk-percentage-update", async (req, res) => {
+  try {
+    const body = BulkPercentageUpdateBody.safeParse(req.body);
+    if (!body.success) return res.status(400).json({ error: "Dados invalidos" });
+
+    const conditions = [eq(productsTable.active, true)];
+    if (body.data.category) conditions.push(eq(productsTable.category, body.data.category));
+
+    const targets = await db
+      .select({ id: productsTable.id, price: productsTable.price })
+      .from(productsTable)
+      .where(and(...conditions));
+
+    if (targets.length === 0) return res.status(400).json({ error: "Nenhum produto encontrado" });
+
+    const factor = 1 + body.data.percentage / 100;
+    const changes = targets.map((p) => ({
+      id: p.id,
+      oldPrice: p.price,
+      newPrice: Math.max(1, Math.round(p.price * factor)),
+    }));
+
+    for (const c of changes) {
+      await db.update(productsTable).set({ price: c.newPrice }).where(eq(productsTable.id, c.id));
+    }
+
+    const [batch] = await db
+      .insert(priceBatchesTable)
+      .values({
+        percentage: body.data.percentage,
+        category: body.data.category ?? null,
+        productsAffected: changes.length,
+        changes: JSON.stringify(changes),
+      })
+      .returning();
+
+    return res.json({ batchId: batch.id, updated: changes.length });
+  } catch (err) {
+    req.log.error(err, "bulkPercentageUpdate error");
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/products/price-batches/latest - most recent non-reverted batch, if any
+router.get("/products/price-batches/latest", async (req, res) => {
+  try {
+    const rows = await db
+      .select()
+      .from(priceBatchesTable)
+      .where(eq(priceBatchesTable.reverted, false))
+      .orderBy(desc(priceBatchesTable.createdAt))
+      .limit(1);
+    const batch = rows[0];
+    if (!batch) return res.json(null);
+    return res.json({
+      id: batch.id,
+      percentage: batch.percentage,
+      category: batch.category,
+      productsAffected: batch.productsAffected,
+      createdAt: batch.createdAt.toISOString(),
+    });
+  } catch (err) {
+    req.log.error(err, "getLatestPriceBatch error");
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/products/price-batches/:id/revert
+router.post("/products/price-batches/:id/revert", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid id" });
+
+    const [batch] = await db.select().from(priceBatchesTable).where(eq(priceBatchesTable.id, id)).limit(1);
+    if (!batch) return res.status(404).json({ error: "Lote nao encontrado" });
+    if (batch.reverted) return res.status(400).json({ error: "Esse lote ja foi revertido" });
+
+    const changes = JSON.parse(batch.changes) as { id: number; oldPrice: number; newPrice: number }[];
+    for (const c of changes) {
+      await db.update(productsTable).set({ price: c.oldPrice }).where(eq(productsTable.id, c.id));
+    }
+
+    await db.update(priceBatchesTable).set({ reverted: true }).where(eq(priceBatchesTable.id, id));
+
+    return res.json({ restored: changes.length });
+  } catch (err) {
+    req.log.error(err, "revertPriceBatch error");
     return res.status(500).json({ error: "Internal server error" });
   }
 });

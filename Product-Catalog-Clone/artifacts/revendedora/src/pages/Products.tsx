@@ -1,6 +1,7 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { PriceUpdateDialog } from '@/components/PriceUpdateDialog';
+import { PercentageUpdateDialog } from '@/components/PercentageUpdateDialog';
 import { 
   useListProducts, 
   useCreateProduct, 
@@ -9,7 +10,7 @@ import {
   getListProductsQueryKey
 } from '@workspace/api-client-react';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Search, Edit2, Trash2, X, AlertCircle, Package, FileSpreadsheet, Download } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, AlertCircle, Package, FileSpreadsheet, Download, Percent } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -77,6 +78,7 @@ export default function Products() {
   const [editProduct, setEditProduct] = useState<any>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isPriceUpdateOpen, setIsPriceUpdateOpen] = useState(false);
+  const [isPercentUpdateOpen, setIsPercentUpdateOpen] = useState(false);
 
   // Reset brand when category changes
   const handleCategoryChange = (cat: string) => {
@@ -127,6 +129,14 @@ export default function Products() {
           <Button onClick={() => setIsPriceUpdateOpen(true)} variant="outline" className="flex-1 sm:flex-none font-medium" data-testid="btn-bulk-price-update">
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Atualizar Preços
+          </Button>
+          <Button onClick={() => setIsPercentUpdateOpen(true)} variant="outline" className="flex-1 sm:flex-none font-medium" data-testid="btn-percent-price-update">
+            <Percent className="h-4 w-4 mr-2" />
+            Ajustar %
+          </Button>
+          <Button onClick={() => setIsPercentUpdateOpen(true)} variant="outline" className="flex-1 sm:flex-none font-medium" data-testid="btn-percent-price-update">
+            <Percent className="h-4 w-4 mr-2" />
+            Ajustar %
           </Button>
           <Button onClick={() => setIsAddOpen(true)} className="flex-1 sm:flex-none font-medium" data-testid="btn-add-product">
             <Plus className="h-4 w-4 mr-2" />
@@ -328,6 +338,8 @@ export default function Products() {
       <DeleteProductDialog id={deleteId} onClose={() => setDeleteId(null)} />
 
       <PriceUpdateDialog open={isPriceUpdateOpen} onOpenChange={setIsPriceUpdateOpen} />
+      <PercentageUpdateDialog open={isPercentUpdateOpen} onOpenChange={setIsPercentUpdateOpen} />
+      <PercentageUpdateDialog open={isPercentUpdateOpen} onOpenChange={setIsPercentUpdateOpen} />
     </div>
   );
 }
