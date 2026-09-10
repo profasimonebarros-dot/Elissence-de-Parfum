@@ -17,6 +17,7 @@ const NewOrder = lazy(() => import('@/pages/NewOrder'));
 const OrderDetails = lazy(() => import('@/pages/OrderDetails'));
 const Portal = lazy(() => import('@/pages/Portal'));
 const SettingsPage = lazy(() => import('@/pages/Settings'));
+const Relatorios = lazy(() => import('@/pages/Relatorios'));
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ function AdminApp() {
           <Route path="/pedidos/novo" component={NewOrder} />
           <Route path="/pedidos/:id" component={OrderDetails} />
           <Route path="/configuracoes" component={SettingsPage} />
+          <Route path="/relatorios" component={Relatorios} />
           <Route component={NotFound} />
         </Switch>
       </Suspense>

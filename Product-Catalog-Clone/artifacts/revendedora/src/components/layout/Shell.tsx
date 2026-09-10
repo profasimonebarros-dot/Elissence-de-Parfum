@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, Package, Users, ShoppingBag, PlusCircle, Settings as SettingsIcon, LogOut, Bell, BellRing } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingBag, PlusCircle, Settings as SettingsIcon, LogOut, Bell, BellRing, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
@@ -19,6 +19,7 @@ export function Shell({ children }: ShellProps) {
     { href: '/produtos', label: 'Catálogo', icon: Package },
     { href: '/consultoras', label: 'Consultoras', icon: Users },
     { href: '/pedidos', label: 'Pedidos', icon: ShoppingBag },
+    { href: '/relatorios', label: 'Relatórios', icon: FileText },
     { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
   ];
 
@@ -27,7 +28,7 @@ export function Shell({ children }: ShellProps) {
   return (
     <div className="min-h-screen flex bg-background w-full font-sans text-foreground">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-card flex-shrink-0 hidden md:flex flex-col">
+      <aside className="w-64 border-r border-border bg-card flex-shrink-0 hidden md:flex flex-col print:hidden">
         <div className="h-20 flex items-center gap-3 px-5 border-b border-border">
           <img src="/logo.png" alt="Elisssence Parfum" className="h-14 w-14 rounded-full shrink-0 object-cover" />
           <h1 translate="no" className="notranslate font-serif text-base font-semibold tracking-wide text-primary leading-tight">Elisssence<br />Parfum</h1>
@@ -96,7 +97,7 @@ export function Shell({ children }: ShellProps) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Header */}
-        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:hidden">
+        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:hidden print:hidden">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Elisssence Parfum" className="h-12 w-12 rounded-full object-cover" />
             <h1 translate="no" className="notranslate font-serif text-base font-semibold text-primary">Elisssence Parfum</h1>
@@ -116,18 +117,18 @@ export function Shell({ children }: ShellProps) {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-4 md:p-8">
-          <div className="max-w-6xl mx-auto">
+        <div className="flex-1 overflow-auto p-4 md:p-8 print:overflow-visible print:p-0">
+          <div className="max-w-6xl mx-auto print:max-w-none">
             {children}
           </div>
         </div>
-        <footer className="px-4 md:px-8 py-4 text-center text-xs text-muted-foreground border-t border-border">
+        <footer className="px-4 md:px-8 py-4 text-center text-xs text-muted-foreground border-t border-border print:hidden">
           Imagens meramente ilustrativas. Todos os direitos sobre marcas e imagens pertencem aos seus respectivos fabricantes. Prazo de entrega: até 15 dias úteis.
         </footer>
       </main>
 
       {/* Mobile Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card z-10 flex justify-around p-2 pb-safe">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card z-10 flex justify-around p-2 pb-safe print:hidden">
         {navItems.map((item) => {
           const isActive = location === item.href || (item.href !== '/' && location.startsWith(item.href));
           return (
