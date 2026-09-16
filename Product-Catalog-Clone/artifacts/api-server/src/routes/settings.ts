@@ -18,6 +18,8 @@ const UpdateSettingsBody = z.object({
   cartaoDebitoEnabled: z.boolean().optional(),
   boletoEnabled: z.boolean().optional(),
   transferenciaEnabled: z.boolean().optional(),
+  infinitepayEnabled: z.boolean().optional(),
+  infinitepayHandle: z.string().trim().min(1).nullable().optional(),
 });
 
 async function getOrCreateSettings() {
@@ -38,6 +40,8 @@ function toSettings(row: typeof settingsTable.$inferSelect) {
     cartaoDebitoEnabled: row.cartaoDebitoEnabled,
     boletoEnabled: row.boletoEnabled,
     transferenciaEnabled: row.transferenciaEnabled,
+    infinitepayEnabled: row.infinitepayEnabled,
+    infinitepayHandle: row.infinitepayHandle ?? null,
     updatedAt: row.updatedAt.toISOString(),
   };
 }
@@ -72,6 +76,8 @@ router.patch("/settings", requireAuth, async (req, res) => {
     if (body.data.cartaoDebitoEnabled !== undefined) updateData.cartaoDebitoEnabled = body.data.cartaoDebitoEnabled;
     if (body.data.boletoEnabled !== undefined) updateData.boletoEnabled = body.data.boletoEnabled;
     if (body.data.transferenciaEnabled !== undefined) updateData.transferenciaEnabled = body.data.transferenciaEnabled;
+    if (body.data.infinitepayEnabled !== undefined) updateData.infinitepayEnabled = body.data.infinitepayEnabled;
+    if ("infinitepayHandle" in body.data) updateData.infinitepayHandle = body.data.infinitepayHandle ?? null;
 
     const [row] = await db
       .update(settingsTable)

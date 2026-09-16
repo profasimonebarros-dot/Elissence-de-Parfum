@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Wallet, CreditCard, Banknote, Landmark, ArrowLeftRight, QrCode, Save, Lock, Eye, EyeOff, UserPlus, Users, Check, X } from 'lucide-react';
+import { Wallet, CreditCard, Banknote, Landmark, ArrowLeftRight, QrCode, Save, Lock, Eye, EyeOff, UserPlus, Users, Check, X, Link2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getStoredToken } from '@/lib/auth';
 
@@ -19,6 +19,8 @@ type SettingsData = {
   cartaoDebitoEnabled: boolean;
   boletoEnabled: boolean;
   transferenciaEnabled: boolean;
+  infinitepayEnabled: boolean;
+  infinitepayHandle: string | null;
 };
 
 const PIX_KEY_TYPE_LABELS: Record<string, string> = {
@@ -26,7 +28,7 @@ const PIX_KEY_TYPE_LABELS: Record<string, string> = {
   cnpj: 'CNPJ',
   email: 'Email',
   telefone: 'Telefone',
-  aleatoria: 'Chave Aleatória',
+  aleatoria: 'Chave AleatÃ³ria',
 };
 
 function apiBase(): string {
@@ -40,6 +42,7 @@ const PAYMENT_TOGGLES: Array<{ key: keyof SettingsData; label: string; icon: typ
   { key: 'cartaoDebitoEnabled', label: 'Cartao de Debito', icon: CreditCard },
   { key: 'boletoEnabled', label: 'Boleto', icon: Landmark },
   { key: 'transferenciaEnabled', label: 'Transferencia Bancaria', icon: ArrowLeftRight },
+  { key: 'infinitepayEnabled', label: 'InfinitePay (Link Cartao/Pix)', icon: Link2 },
 ];
 
 export default function Settings() {
@@ -63,6 +66,7 @@ export default function Settings() {
   const [pixKey, setPixKey] = useState('');
   const [pixKeyType, setPixKeyType] = useState('');
   const [pixRecipientName, setPixRecipientName] = useState('');
+  const [infinitepayHandle, setInfinitepayHandle] = useState('');
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     pixEnabled: true,
     dinheiroEnabled: true,
@@ -70,6 +74,7 @@ export default function Settings() {
     cartaoDebitoEnabled: true,
     boletoEnabled: true,
     transferenciaEnabled: true,
+    infinitepayEnabled: false,
   });
 
   useEffect(() => {
@@ -81,6 +86,7 @@ export default function Settings() {
           setPixKey(data.pixKey ?? '');
           setPixKeyType(data.pixKeyType ?? '');
           setPixRecipientName(data.pixRecipientName ?? '');
+          setInfinitepayHandle(data.infinitepayHandle ?? '');
           setToggles({
             pixEnabled: data.pixEnabled,
             dinheiroEnabled: data.dinheiroEnabled,
@@ -88,6 +94,7 @@ export default function Settings() {
             cartaoDebitoEnabled: data.cartaoDebitoEnabled,
             boletoEnabled: data.boletoEnabled,
             transferenciaEnabled: data.transferenciaEnabled,
+            infinitepayEnabled: data.infinitepayEnabled,
           });
         }
       } finally {
@@ -106,13 +113,14 @@ export default function Settings() {
           pixKey: pixKey.trim() || null,
           pixKeyType: pixKeyType || null,
           pixRecipientName: pixRecipientName.trim() || null,
+          infinitepayHandle: infinitepayHandle.trim() || null,
           ...toggles,
         }),
       });
       if (!res.ok) throw new Error('failed');
-      toast({ title: 'Configurações salvas com sucesso' });
+      toast({ title: 'ConfiguraÃ§Ãµes salvas com sucesso' });
     } catch {
-      toast({ title: 'Erro ao salvar configurações', variant: 'destructive' });
+      toast({ title: 'Erro ao salvar configuraÃ§Ãµes', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -174,7 +182,7 @@ export default function Settings() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast({ title: 'As senhas não coincidem', variant: 'destructive' });
+      toast({ title: 'As senhas nÃ£o coincidem', variant: 'destructive' });
       return;
     }
     setChangingPassword(true);
@@ -206,7 +214,7 @@ export default function Settings() {
   return (
     <div className="space-y-8 pb-12" data-testid="page-settings">
       <div>
-        <h1 className="text-3xl font-serif font-medium tracking-tight">Configurações</h1>
+        <h1 className="text-3xl font-serif font-medium tracking-tight">ConfiguraÃ§Ãµes</h1>
         <p className="text-muted-foreground mt-1">Chave PIX e formas de pagamento disponiveis para as consultoras.</p>
       </div>
 
@@ -239,7 +247,7 @@ export default function Settings() {
           <div className="space-y-2">
             <Label>Chave PIX</Label>
             <Input
-              placeholder="CPF, email, telefone ou chave aleatória"
+              placeholder="CPF, email, telefone ou chave aleatÃ³ria"
               value={pixKey}
               onChange={(e) => setPixKey(e.target.value)}
             />
@@ -256,6 +264,25 @@ export default function Settings() {
         </div>
       </div>
 
+      {/* InfinitePay */}
+      <div className="bg-card border border-border rounded-lg p-6 space-y-3 max-w-2xl">
+        <div className="flex items-center gap-2">
+          <Link2 className="h-5 w-5 text-primary" />
+          <h2 className="font-serif text-xl font-medium">InfinitePay</h2>
+        </div>
+        <p className="text-sm text-muted-foreground -mt-3">
+          Gera um link de pagamento (cartao ate 12x ou Pix) direto no pedido da consultora. Informe sua InfiniteTag, sem o $.
+        </p>
+        <div className="space-y-2">
+          <Label>InfiniteTag (handle)</Label>
+          <Input
+            placeholder="sua-infinite-tag"
+            value={infinitepayHandle}
+            onChange={(e) => setInfinitepayHandle(e.target.value)}
+          />
+        </div>
+      </div>
+
       {/* Payment methods */}
       <div className="bg-card border border-border rounded-lg p-6 space-y-1 max-w-2xl">
         <div className="flex items-center gap-2 mb-4">
@@ -263,7 +290,7 @@ export default function Settings() {
           <h2 className="font-serif text-xl font-medium">Formas de Pagamento</h2>
         </div>
         <p className="text-sm text-muted-foreground -mt-3 mb-4">
-          Desative as formas de pagamento que você não aceita - elas somem da tela de pedido da consultora.
+          Desative as formas de pagamento que vocÃª nÃ£o aceita - elas somem da tela de pedido da consultora.
         </p>
 
         {PAYMENT_TOGGLES.map(({ key, label, icon: Icon }) => (
@@ -282,7 +309,7 @@ export default function Settings() {
 
       <Button onClick={handleSave} disabled={saving} className="font-medium">
         <Save className="h-4 w-4 mr-2" />
-        {saving ? 'Salvando...' : 'Salvar Configurações'}
+        {saving ? 'Salvando...' : 'Salvar ConfiguraÃ§Ãµes'}
       </Button>
 
       {/* Change password */}
@@ -350,7 +377,7 @@ export default function Settings() {
           <h2 className="font-serif text-xl font-medium">Administradores</h2>
         </div>
         <p className="text-sm text-muted-foreground -mt-3">
-          Pessoas com acesso completo ao painel (produtos, pedidos, consultoras e configurações).
+          Pessoas com acesso completo ao painel (produtos, pedidos, consultoras e configuraÃ§Ãµes).
         </p>
 
         {loadingAdmins ? (
@@ -381,7 +408,7 @@ export default function Settings() {
             <Input placeholder="Nome" value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} />
             <Input placeholder="Email" type="email" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
           </div>
-          <Input placeholder="Senha (mínimo 6 caracteres)" type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} />
+          <Input placeholder="Senha (mÃ­nimo 6 caracteres)" type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} />
           <Button
             onClick={handleCreateAdmin}
             disabled={creatingAdmin || !newAdminName || !newAdminEmail || newAdminPassword.length < 6}

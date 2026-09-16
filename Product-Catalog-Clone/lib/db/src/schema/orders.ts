@@ -11,6 +11,8 @@ export const ordersTable = pgTable("orders", {
   totalAmount: integer("total_amount").notNull().default(0), // cents
   commissionAmount: integer("commission_amount").notNull().default(0), // cents
   notes: text("notes"),
+  infinitepaySlug: text("infinitepay_slug"),
+  infinitepayTransactionNsu: text("infinitepay_transaction_nsu"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

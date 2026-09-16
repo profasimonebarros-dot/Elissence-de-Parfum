@@ -5,6 +5,7 @@ import consultantsRouter from "./consultants";
 import ordersRouter from "./orders";
 import dashboardRouter from "./dashboard";
 import portalRouter from "./portal";
+import infinitepayRouter from "./payments-infinitepay";
 import settingsRouter from "./settings";
 import authRouter from "./auth";
 import pushRouter from "./push";
@@ -15,6 +16,7 @@ const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(portalRouter);
+router.use(infinitepayRouter);
 router.use(settingsRouter);
 router.use(authRouter);
 router.use(pushRouter);
