@@ -4,6 +4,8 @@ import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { Bell, BellRing } from 'lucide-react';
 import { type OrderInputPaymentMethod } from '@workspace/api-client-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { buildPixPayload } from '@/lib/pix';
+import QRCode from 'qrcode';
 import {
   Search,
   Plus,
@@ -127,12 +129,14 @@ export default function Portal() {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState<Array<{ product: (typeof products)[number]; quantity: number }>>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [pixQrDataUrl, setPixQrDataUrl] = useState<string | null>(null);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
 
   const [storeSettings, setStoreSettings] = useState<{
     pixKey: string | null;
     pixKeyType: string | null;
     pixRecipientName: string | null;
+    pixMerchantCity: string | null;
     pixEnabled: boolean;
     dinheiroEnabled: boolean;
     cartaoCreditoEnabled: boolean;
@@ -200,6 +204,30 @@ export default function Portal() {
     if (!summary) return 0;
     return Math.round(cartSubtotal * (summary.commissionRate / 100));
   }, [cartSubtotal, summary]);
+
+  useEffect(() => {
+    if (paymentMethod !== 'pix' || !storeSettings?.pixKey) {
+      setPixQrDataUrl(null);
+      return;
+    }
+    const payload = buildPixPayload({
+      key: storeSettings.pixKey,
+      merchantName: storeSettings.pixRecipientName ?? 'Elisssence Parfum',
+      merchantCity: storeSettings.pixMerchantCity ?? 'PIRAQUARA',
+      amount: cartSubtotal > 0 ? cartSubtotal / 100 : undefined,
+    });
+    let cancelled = false;
+    QRCode.toDataURL(payload, { margin: 1, width: 220 })
+      .then((url) => {
+        if (!cancelled) setPixQrDataUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setPixQrDataUrl(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [paymentMethod, cartSubtotal, storeSettings]);
 
   const addToCart = (product: (typeof products)[number]) => {
     setCart((prev) => {
@@ -328,11 +356,19 @@ const cartPanelBody = (
           </Select>
 
           {paymentMethod === 'pix' && storeSettings?.pixKey && (
-            <div className="bg-primary/5 border border-primary/20 rounded-md p-3 text-sm space-y-0.5">
-              <p className="font-medium text-primary">Chave PIX para pagamento</p>
-              <p className="text-foreground break-all">{storeSettings.pixKey}</p>
+            <div className="bg-primary/5 border border-primary/20 rounded-md p-3 text-sm space-y-2">
+              <p className="font-medium text-primary">Pague com PIX</p>
+              {pixQrDataUrl ? (
+                <div className="flex justify-center py-1">
+                  <img src={pixQrDataUrl} alt="QR Code PIX" className="w-44 h-44 rounded" />
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">Gerando QR Code...</p>
+              )}
+              <p className="text-xs text-muted-foreground text-center">Escaneie com o app do seu banco, ou use a chave abaixo</p>
+              <p className="text-foreground break-all text-center font-medium">{storeSettings.pixKey}</p>
               {storeSettings.pixRecipientName && (
-                <p className="text-xs text-muted-foreground">Recebedor: {storeSettings.pixRecipientName}</p>
+                <p className="text-xs text-muted-foreground text-center">Recebedor: {storeSettings.pixRecipientName}</p>
               )}
             </div>
           )}

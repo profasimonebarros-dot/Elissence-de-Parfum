@@ -12,6 +12,7 @@ const UpdateSettingsBody = z.object({
   pixKey: z.string().trim().min(1).nullable().optional(),
   pixKeyType: z.enum(PIX_KEY_TYPES).nullable().optional(),
   pixRecipientName: z.string().trim().min(1).nullable().optional(),
+  pixMerchantCity: z.string().trim().min(1).nullable().optional(),
   pixEnabled: z.boolean().optional(),
   dinheiroEnabled: z.boolean().optional(),
   cartaoCreditoEnabled: z.boolean().optional(),
@@ -34,6 +35,7 @@ function toSettings(row: typeof settingsTable.$inferSelect) {
     pixKey: row.pixKey ?? null,
     pixKeyType: row.pixKeyType ?? null,
     pixRecipientName: row.pixRecipientName ?? null,
+    pixMerchantCity: row.pixMerchantCity ?? null,
     pixEnabled: row.pixEnabled,
     dinheiroEnabled: row.dinheiroEnabled,
     cartaoCreditoEnabled: row.cartaoCreditoEnabled,
@@ -70,6 +72,7 @@ router.patch("/settings", requireAuth, async (req, res) => {
     if ("pixKey" in body.data) updateData.pixKey = body.data.pixKey ?? null;
     if ("pixKeyType" in body.data) updateData.pixKeyType = body.data.pixKeyType ?? null;
     if ("pixRecipientName" in body.data) updateData.pixRecipientName = body.data.pixRecipientName ?? null;
+    if ("pixMerchantCity" in body.data) updateData.pixMerchantCity = body.data.pixMerchantCity ?? null;
     if (body.data.pixEnabled !== undefined) updateData.pixEnabled = body.data.pixEnabled;
     if (body.data.dinheiroEnabled !== undefined) updateData.dinheiroEnabled = body.data.dinheiroEnabled;
     if (body.data.cartaoCreditoEnabled !== undefined) updateData.cartaoCreditoEnabled = body.data.cartaoCreditoEnabled;

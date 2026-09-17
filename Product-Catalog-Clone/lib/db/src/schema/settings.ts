@@ -6,6 +6,7 @@ export const settingsTable = pgTable("settings", {
   pixKey: text("pix_key"),
   pixKeyType: text("pix_key_type"), // 'cpf' | 'cnpj' | 'email' | 'telefone' | 'aleatoria'
   pixRecipientName: text("pix_recipient_name"),
+  pixMerchantCity: text("pix_merchant_city"),
   // Which payment methods are offered to consultants at checkout.
   pixEnabled: boolean("pix_enabled").notNull().default(true),
   dinheiroEnabled: boolean("dinheiro_enabled").notNull().default(true),

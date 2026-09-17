@@ -13,6 +13,7 @@ type SettingsData = {
   pixKey: string | null;
   pixKeyType: string | null;
   pixRecipientName: string | null;
+  pixMerchantCity: string | null;
   pixEnabled: boolean;
   dinheiroEnabled: boolean;
   cartaoCreditoEnabled: boolean;
@@ -66,6 +67,7 @@ export default function Settings() {
   const [pixKey, setPixKey] = useState('');
   const [pixKeyType, setPixKeyType] = useState('');
   const [pixRecipientName, setPixRecipientName] = useState('');
+  const [pixMerchantCity, setPixMerchantCity] = useState('');
   const [infinitepayHandle, setInfinitepayHandle] = useState('');
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     pixEnabled: true,
@@ -86,6 +88,7 @@ export default function Settings() {
           setPixKey(data.pixKey ?? '');
           setPixKeyType(data.pixKeyType ?? '');
           setPixRecipientName(data.pixRecipientName ?? '');
+          setPixMerchantCity(data.pixMerchantCity ?? '');
           setInfinitepayHandle(data.infinitepayHandle ?? '');
           setToggles({
             pixEnabled: data.pixEnabled,
@@ -113,6 +116,7 @@ export default function Settings() {
           pixKey: pixKey.trim() || null,
           pixKeyType: pixKeyType || null,
           pixRecipientName: pixRecipientName.trim() || null,
+          pixMerchantCity: pixMerchantCity.trim() || null,
           infinitepayHandle: infinitepayHandle.trim() || null,
           ...toggles,
         }),
@@ -260,6 +264,15 @@ export default function Settings() {
             placeholder="Nome que aparece pra consultora conferir"
             value={pixRecipientName}
             onChange={(e) => setPixRecipientName(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Cidade do recebedor</Label>
+          <Input
+            placeholder="Ex: PIRAQUARA"
+            value={pixMerchantCity}
+            onChange={(e) => setPixMerchantCity(e.target.value)}
           />
         </div>
       </div>
