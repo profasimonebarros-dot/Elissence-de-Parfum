@@ -212,6 +212,7 @@ export default function Portal() {
     }
     const payload = buildPixPayload({
       key: storeSettings.pixKey,
+      keyType: storeSettings.pixKeyType,
       merchantName: storeSettings.pixRecipientName ?? 'Elisssence Parfum',
       merchantCity: storeSettings.pixMerchantCity ?? 'PIRAQUARA',
       amount: cartSubtotal > 0 ? cartSubtotal / 100 : undefined,
@@ -262,7 +263,11 @@ export default function Portal() {
       return;
     }
 
-    setSubmitting(true);
+        if (!paymentMethod) {
+      toast({ title: 'Escolha a forma de pagamento antes de confirmar', variant: 'destructive' });
+      return;
+    }
+setSubmitting(true);
     try {
       const res = await fetch(`${apiBase()}/api/portal/${token}/orders`, {
         method: 'POST',
@@ -455,7 +460,7 @@ const cartPanelBody = (
 
         <Button
           className="w-full h-12 text-base font-medium"
-          disabled={cart.length === 0 || submitting}
+          disabled={cart.length === 0 || submitting || !paymentMethod}
           onClick={handleSubmit}
         >
           {submitting ? (

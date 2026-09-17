@@ -30,18 +30,37 @@ function crc16(payload: string): string {
   return crc.toString(16).toUpperCase().padStart(4, '0');
 }
 
+function normalizePixKey(key: string, keyType: string | null | undefined): string {
+  const trimmed = key.trim();
+  if (keyType === 'telefone') {
+    const digits = trimmed.replace(/\D/g, '');
+    if (digits.length === 11 || digits.length === 10) return '+55' + digits;
+    if ((digits.length === 13 || digits.length === 12) && digits.startsWith('55')) return '+' + digits;
+    return '+55' + digits;
+  }
+  if (keyType === 'cpf' || keyType === 'cnpj') {
+    return trimmed.replace(/\D/g, '');
+  }
+  if (keyType === 'email') {
+    return trimmed.toLowerCase();
+  }
+  return trimmed;
+}
+
 export function buildPixPayload(params: {
   key: string;
+  keyType?: string | null;
   merchantName: string;
   merchantCity: string;
   amount?: number;
   txid?: string;
 }): string {
+  const normalizedKey = normalizePixKey(params.key, params.keyType);
   const merchantName = sanitize(params.merchantName).slice(0, 25) || 'RECEBEDOR';
   const merchantCity = sanitize(params.merchantCity).slice(0, 15) || 'CIDADE';
   const txid = sanitize(params.txid ?? '***').slice(0, 25) || '***';
 
-  const merchantAccountInfo = tlv('00', 'br.gov.bcb.pix') + tlv('01', params.key);
+  const merchantAccountInfo = tlv('00', 'br.gov.bcb.pix') + tlv('01', normalizedKey);
 
   let payload =
     tlv('00', '01') +
